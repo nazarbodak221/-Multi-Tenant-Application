@@ -105,9 +105,17 @@ class OrganizationService:
             # Optionally drop database
             raise DatabaseError("Failed to apply migrations to tenant database")
         
-        # Sync owner to tenant database as owner user
-        # This ensures the owner has access to tenant
-        await self._sync_owner_to_tenant(tenant_id, owner)
+        # Emit organization.created event
+        from app.events.emitter import event_emitter, EventType
+        await event_emitter.emit(
+            EventType.ORGANIZATION_CREATED,
+            {
+                "organization_id": str(organization.id),
+                "organization_name": organization.name,
+                "owner_id": str(owner.id),
+                "owner_email": owner.email,
+            }
+        )
         
         return {
             "id": str(organization.id),
