@@ -1,18 +1,22 @@
 from typing import Optional, Dict
 from contextlib import asynccontextmanager
 from tortoise import Tortoise
+from tortoise.connection import connections
 import asyncpg
 from app.config import get_settings
 
 settings = get_settings()
 
+
 class DatabaseManager:
     """
-    Manages connections to core and tenant databases.
-    Implements connection pooling and dynamic tenant routing.
+    Manages connections to core and tenant databases
+    Implements connection pooling and dynamic tenant routing
+    Each tenant gets its own connection pool for better isolation
     """
     _instance: Optional["DatabaseManager"] = None
     _tenant_connections: Dict[str, bool] = {}
+    _core_initialized: bool = False
     
     def __new__(cls):
         if cls._instance is None:
@@ -20,36 +24,86 @@ class DatabaseManager:
         return cls._instance
     
     async def init_core_db(self):
-        """Initialize core database connection."""
+        """Initialize core database connection with named connection"""
+        if self._core_initialized:
+            return
+        
+        # Build connections dict starting with default
+        connections_dict = {
+            "default": settings.core_database_url,
+        }
+        
+        # Add all existing tenant connections
+        for tenant_id in self._tenant_connections.keys():
+            connection_name = self.get_tenant_connection_name(tenant_id)
+            connections_dict[connection_name] = settings.tenant_database_url(tenant_id)
+        
+        # Build modules dict
+        modules_dict = {
+            "models": ["app.models.core"],
+        }
+        
+        # Add tenant models if we have tenant connections
+        if self._tenant_connections:
+            modules_dict["models"].extend(["app.models.tenant"])
+        
         await Tortoise.init(
             db_url=settings.core_database_url,
-            modules={"models": ["app.models.core"]},
+            modules=modules_dict,
+            connections=connections_dict,
         )
         await Tortoise.generate_schemas()
+        self._core_initialized = True
     
     async def init_tenant_db(self, tenant_id: str):
-        """Initialize or connect to tenant database."""
-        db_name = f"tenant_{tenant_id}"
+        """Initialize or connect to tenant database with its own connection pool"""
+        connection_name = self.get_tenant_connection_name(tenant_id)
         
+        # Check if connection already exists
         if tenant_id in self._tenant_connections:
             return
         
         tenant_url = settings.tenant_database_url(tenant_id)
         
+        # Re-initialize Tortoise with all connections including new tenant
+        self._tenant_connections[tenant_id] = True
+        
+        # Close existing connections
+        if Tortoise._inited:
+            await Tortoise.close_connections()
+            self._core_initialized = False
+        
+        # Re-initialize with all connections
+        connections_dict = {
+            "default": settings.core_database_url,
+        }
+        
+        # Add all tenant connections including new one
+        for tid in self._tenant_connections.keys():
+            conn_name = self.get_tenant_connection_name(tid)
+            connections_dict[conn_name] = settings.tenant_database_url(tid)
+        
+        modules_dict = {
+            "models": ["app.models.core", "app.models.tenant"],
+        }
+        
         await Tortoise.init(
-            db_url=tenant_url,
-            modules={"models": ["app.models.tenant"]},
-            _create_db=False,
-            use_tz=True,
+            db_url=settings.core_database_url,
+            modules=modules_dict,
+            connections=connections_dict,
         )
         
+        # Generate schemas for tenant database
         await Tortoise.generate_schemas()
-        self._tenant_connections[tenant_id] = True
+    
+    def get_tenant_connection_name(self, tenant_id: str) -> str:
+        """Get connection name for tenant"""
+        return f"tenant_{tenant_id}"
     
     async def create_tenant_database(self, tenant_id: str) -> bool:
         """
-        Creates a new PostgreSQL database for a tenant.
-        Returns True if successful, False otherwise.
+        Creates a new PostgreSQL database for a tenant
+        Returns True if successful, False otherwise
         """
         db_name = f"tenant_{tenant_id}"
         
@@ -84,20 +138,37 @@ class DatabaseManager:
     
     @asynccontextmanager
     async def get_tenant_connection(self, tenant_id: str):
-        """Context manager for tenant database connections."""
+        """
+        Context manager for tenant database connections
+        Ensures connection is initialized and returns the connection pool
+        """
         if tenant_id not in self._tenant_connections:
             await self.init_tenant_db(tenant_id)
         
-        connection_name = f"tenant_{tenant_id}"
+        connection_name = self.get_tenant_connection_name(tenant_id)
         try:
-            yield Tortoise.get_connection(connection_name)
-        finally:
-            pass
+            yield connections.get(connection_name)
+        except Exception as e:
+            # Re-initialize if connection was closed
+            if tenant_id in self._tenant_connections:
+                del self._tenant_connections[tenant_id]
+            await self.init_tenant_db(tenant_id)
+            yield connections.get(connection_name)
+    
+    def get_tenant_model(self, tenant_id: str, model_class):
+        """
+        Get model instance configured for specific tenant connection
+        Usage: user = db_manager.get_tenant_model(tenant_id, TenantUser)
+        """
+        connection_name = self.get_tenant_connection_name(tenant_id)
+        # Return model bound to tenant connection
+        return model_class.using(connection_name)
     
     async def close_all(self):
-        """Close all database connections."""
+        """Close all database connections"""
         await Tortoise.close_connections()
         self._tenant_connections.clear()
+        self._core_initialized = False
 
 
 db_manager = DatabaseManager()
