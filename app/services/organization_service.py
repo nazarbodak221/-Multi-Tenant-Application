@@ -95,6 +95,16 @@ class OrganizationService:
             await organization.delete()
             raise DatabaseError("Failed to create tenant database")
         
+        # Apply migrations to tenant database
+        from app.core.migrations import apply_migrations_to_tenant
+        migrations_applied = await apply_migrations_to_tenant(tenant_id)
+        
+        if not migrations_applied:
+            # Rollback: delete organization and database if migrations failed
+            await organization.delete()
+            # Optionally drop database
+            raise DatabaseError("Failed to apply migrations to tenant database")
+        
         # Sync owner to tenant database as owner user
         # This ensures the owner has access to tenant
         await self._sync_owner_to_tenant(tenant_id, owner)

@@ -7,6 +7,39 @@ from app.config import get_settings
 
 settings = get_settings()
 
+# Tortoise ORM configuration for Aerich
+def get_tortoise_orm_config() -> dict:
+    """Get Tortoise ORM config with current settings"""
+    return {
+        "connections": {
+            "default": settings.core_database_url,
+        },
+        "apps": {
+            "models": {
+                "models": ["app.models.core", "aerich.models"],
+                "default_connection": "default",
+            },
+        },
+    }
+
+# Export for Aerich (will be evaluated at runtime)
+TORTOISE_ORM = get_tortoise_orm_config()
+
+# Tenant ORM configuration template
+def get_tenant_orm_config(tenant_id: str) -> dict:
+    """Get Tortoise ORM config for tenant database"""
+    return {
+        "connections": {
+            "tenant": settings.tenant_database_url(tenant_id),
+        },
+        "apps": {
+            "models": {
+                "models": ["app.models.tenant", "aerich.models"],
+                "default_connection": "tenant",
+            },
+        },
+    }
+
 
 class DatabaseManager:
     """
