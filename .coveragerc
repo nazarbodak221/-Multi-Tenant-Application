@@ -1,0 +1,14 @@
+[run]
+omit =
+    app/api/*
+    app/events/*
+    app/middleware/*
+    app/repositories/*
+    app/main.py
+    app/core/database.py
+    app/core/migrations.py
+    app/config.py
+
+[report]
+show_missing = True
+
