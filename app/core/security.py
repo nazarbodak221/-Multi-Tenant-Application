@@ -220,7 +220,8 @@ class JWTHandler:
         except ValueError:
             raise ValidationError(f"Invalid user_id format: {user_id_str}")
     
-
+    @staticmethod
+    def extract_email(payload: Dict[str, Any]) -> str:
         email = payload.get("email")
         if not email:
             raise ValidationError("email is missing from token")

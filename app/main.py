@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.core.database import db_manager
+from app.middleware.tenant_context import TenantContextMiddleware
 
 
 @asynccontextmanager
@@ -21,6 +22,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Add tenant context middleware
+app.add_middleware(TenantContextMiddleware)
 
 
 @app.get("/")
