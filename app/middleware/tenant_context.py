@@ -1,4 +1,3 @@
-from typing import Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -20,7 +19,7 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
         Extract tenant ID from header and set in context
         Clears context after request completes
         """
-        tenant_id: Optional[str] = request.headers.get(
+        tenant_id: str | None = request.headers.get(
             settings.TENANT_HEADER_NAME, None
         )
 

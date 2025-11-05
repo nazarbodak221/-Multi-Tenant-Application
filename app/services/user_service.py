@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 from uuid import UUID
 
 from tortoise import Tortoise
@@ -7,7 +7,6 @@ from app.core.database import db_manager
 from app.core.exceptions import NotFoundError, ValidationError
 from app.core.tenant_manager import TenantContext
 from app.core.utils import format_datetime
-from app.models.core import User
 from app.models.tenant import TenantUser
 from app.repositories.user_repositories import TenantUserRepository, UserRepository
 
@@ -19,7 +18,7 @@ class UserService:
         self.user_repo = UserRepository()
         self.tenant_user_repo = TenantUserRepository()
 
-    async def get_core_user_profile(self, user_id: UUID) -> Dict[str, Any]:
+    async def get_core_user_profile(self, user_id: UUID) -> dict[str, Any]:
         user = await self.user_repo.get_by_id(user_id)
         if not user:
             raise NotFoundError("User", str(user_id))
@@ -45,8 +44,8 @@ class UserService:
         }
 
     async def update_core_user_profile(
-        self, user_id: UUID, full_name: Optional[str] = None, **extra_data
-    ) -> Dict[str, Any]:
+        self, user_id: UUID, full_name: str | None = None, **extra_data
+    ) -> dict[str, Any]:
         """
         Update core user profile
 
@@ -89,8 +88,8 @@ class UserService:
         }
 
     async def get_tenant_user_profile(
-        self, user_id: UUID, tenant_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, user_id: UUID, tenant_id: str | None = None
+    ) -> dict[str, Any]:
         if not tenant_id:
             tenant_id = TenantContext.get_tenant()
             if not tenant_id:
@@ -121,12 +120,12 @@ class UserService:
     async def update_tenant_user_profile(
         self,
         user_id: UUID,
-        tenant_id: Optional[str] = None,
-        full_name: Optional[str] = None,
-        phone: Optional[str] = None,
-        avatar_url: Optional[str] = None,
+        tenant_id: str | None = None,
+        full_name: str | None = None,
+        phone: str | None = None,
+        avatar_url: str | None = None,
         **extra_data
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Update tenant user profile
 

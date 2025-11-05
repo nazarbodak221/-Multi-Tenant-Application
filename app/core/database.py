@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from typing import Dict, Optional
+from typing import Optional
 
 import asyncpg
 from tortoise import Tortoise
@@ -52,7 +52,7 @@ class DatabaseManager:
     """
 
     _instance: Optional["DatabaseManager"] = None
-    _tenant_connections: Dict[str, bool] = {}
+    _tenant_connections: dict[str, bool] = {}
     _core_initialized: bool = False
 
     def __new__(cls):
@@ -183,7 +183,7 @@ class DatabaseManager:
         try:
             connection = Tortoise.get_connection(connection_name)
             yield connection
-        except Exception as e:
+        except Exception:
             # Re-initialize if connection was closed
             if tenant_id in self._tenant_connections:
                 del self._tenant_connections[tenant_id]

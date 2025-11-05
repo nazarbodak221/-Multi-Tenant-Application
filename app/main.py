@@ -6,7 +6,7 @@ from app.api.v1 import auth, organizations, users
 from app.config import get_settings
 from app.core.database import db_manager
 from app.events.handlers import register_handlers
-from app.middleware.logging import StructuredLoggingMiddleware, setup_logging
+from app.middleware.logging import setup_logging
 from app.middleware.tenant_context import TenantContextMiddleware
 
 settings = get_settings()

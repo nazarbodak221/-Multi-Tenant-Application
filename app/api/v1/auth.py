@@ -1,4 +1,3 @@
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -13,7 +12,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
     "/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED
 )
 async def register(
-    request: RegisterRequest, tenant_id: Optional[str] = Depends(get_tenant_id)
+    request: RegisterRequest, tenant_id: str | None = Depends(get_tenant_id)
 ):
     """
     Register a new user
@@ -45,7 +44,7 @@ async def register(
 
 @router.post("/login", response_model=AuthResponse)
 async def login(
-    request: LoginRequest, tenant_id: Optional[str] = Depends(get_tenant_id)
+    request: LoginRequest, tenant_id: str | None = Depends(get_tenant_id)
 ):
     """
     Login user

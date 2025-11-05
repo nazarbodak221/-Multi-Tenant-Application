@@ -2,7 +2,6 @@
 Unit tests for custom exceptions
 """
 
-import pytest
 from fastapi import status
 
 from app.core.exceptions import (

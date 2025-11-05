@@ -1,10 +1,9 @@
 from datetime import datetime
-from typing import Optional
 
 
 def format_datetime(
-    dt: Optional[datetime], format: str = "%Y-%m-%d %H:%M:%S"
-) -> Optional[str]:
+    dt: datetime | None, format: str = "%Y-%m-%d %H:%M:%S"
+) -> str | None:
     """
     Format datetime to readable string format
 
@@ -20,7 +19,7 @@ def format_datetime(
     return dt.strftime(format)
 
 
-def format_date(dt: Optional[datetime], format: str = "%Y-%m-%d") -> Optional[str]:
+def format_date(dt: datetime | None, format: str = "%Y-%m-%d") -> str | None:
     """
     Format datetime to date string
 

@@ -1,4 +1,3 @@
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -31,7 +30,7 @@ async def create_organization(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get("/me", response_model=List[OrganizationResponse])
+@router.get("/me", response_model=list[OrganizationResponse])
 async def get_my_organizations(current_user: User = Depends(get_current_user_core)):
     """
     Get all organizations owned by current user (only for core users)

@@ -1,7 +1,5 @@
-from typing import Optional, Tuple
-from uuid import UUID
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from tortoise import Tortoise
 
@@ -10,9 +8,7 @@ from app.core.database import db_manager
 from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.core.security import JWTHandler, TokenScope, decode_token
 from app.core.tenant_manager import (
-    TenantContext,
     get_tenant_from_context,
-    require_tenant_from_context,
 )
 from app.models.core import User
 from app.models.tenant import TenantUser
@@ -68,8 +64,8 @@ async def get_current_user_core(
 
 async def get_current_user_tenant(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    x_tenant_header: Optional[str] = Depends(get_tenant_from_context),
-) -> Tuple[TenantUser, str]:
+    x_tenant_header: str | None = Depends(get_tenant_from_context),
+) -> tuple[TenantUser, str]:
     """
     Dependency to get current tenant user from JWT token
     Validates token, checks scope="tenant"
@@ -126,8 +122,8 @@ async def get_current_user_tenant(
 
 
 async def get_tenant_id(
-    x_tenant: Optional[str] = Header(None, alias=settings.TENANT_HEADER_NAME)
-) -> Optional[str]:
+    x_tenant: str | None = Header(None, alias=settings.TENANT_HEADER_NAME)
+) -> str | None:
     """
     Dependency to extract tenant ID from X-Tenant-Id header
     Returns None if header is not present (optional tenant)

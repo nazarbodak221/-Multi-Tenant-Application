@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 from app.core.database import db_manager
@@ -7,7 +7,6 @@ from app.core.exceptions import (
     ConflictError,
     DatabaseError,
     NotFoundError,
-    ValidationError,
 )
 from app.core.utils import format_datetime
 from app.models.core import Organization, User
@@ -35,8 +34,8 @@ class OrganizationService:
         return f"tenant_{org_id}"
 
     async def create_organization(
-        self, name: str, owner_id: UUID, slug: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, name: str, owner_id: UUID, slug: str | None = None
+    ) -> dict[str, Any]:
         """
         Create new organization with tenant database
 
@@ -148,7 +147,7 @@ class OrganizationService:
                 is_active=True,
             )
 
-    async def get_organization(self, org_id: UUID) -> Dict[str, Any]:
+    async def get_organization(self, org_id: UUID) -> dict[str, Any]:
         organization = await self.org_repo.get_by_id(org_id)
         if not organization:
             raise NotFoundError("Organization", str(org_id))
@@ -164,7 +163,7 @@ class OrganizationService:
             "updated_at": format_datetime(organization.updated_at),
         }
 
-    async def get_organizations_by_owner(self, owner_id: UUID) -> List[Dict[str, Any]]:
+    async def get_organizations_by_owner(self, owner_id: UUID) -> list[dict[str, Any]]:
         organizations = await self.org_repo.get_by_owner(owner_id)
 
         return [

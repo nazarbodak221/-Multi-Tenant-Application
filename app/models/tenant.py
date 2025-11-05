@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 from tortoise import fields, models
@@ -35,12 +35,12 @@ class TenantUser_Pydantic(BaseModel):
 
     id: str
     email: str
-    full_name: Optional[str] = None
-    phone: Optional[str] = None
-    avatar_url: Optional[str] = None
+    full_name: str | None = None
+    phone: str | None = None
+    avatar_url: str | None = None
     is_owner: bool
     is_active: bool
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     created_at: datetime
     updated_at: datetime
 
@@ -50,6 +50,6 @@ class TenantUserIn_Pydantic(BaseModel):
 
     email: str
     password: str
-    full_name: Optional[str] = None
-    phone: Optional[str] = None
-    avatar_url: Optional[str] = None
+    full_name: str | None = None
+    phone: str | None = None
+    avatar_url: str | None = None

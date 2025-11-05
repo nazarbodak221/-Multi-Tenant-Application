@@ -2,7 +2,6 @@
 Migration utilities for tenant databases
 """
 
-import asyncio
 
 from aerich import Command
 from tortoise import Tortoise

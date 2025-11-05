@@ -1,4 +1,3 @@
-from typing import Optional
 
 from pydantic import BaseModel, EmailStr
 
@@ -6,7 +5,7 @@ from pydantic import BaseModel, EmailStr
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -17,15 +16,15 @@ class LoginRequest(BaseModel):
 class UserResponse(BaseModel):
     id: str
     email: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
     is_active: bool
-    is_owner: Optional[bool] = None
+    is_owner: bool | None = None
 
 
 class TenantUserResponse(BaseModel):
     id: str
     email: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
     is_owner: bool = False
     is_active: bool
 
@@ -35,4 +34,4 @@ class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     scope: str
-    tenant_id: Optional[str] = None
+    tenant_id: str | None = None

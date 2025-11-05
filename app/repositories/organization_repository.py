@@ -1,4 +1,3 @@
-from typing import List, Optional
 from uuid import UUID
 
 from app.models.core import Organization
@@ -11,11 +10,11 @@ class OrganizationRepository(BaseRepository[Organization]):
     def __init__(self):
         super().__init__(Organization)
 
-    async def get_by_slug(self, slug: str) -> Optional[Organization]:
+    async def get_by_slug(self, slug: str) -> Organization | None:
         """Get organization by slug"""
         return await self.get_by_field(slug=slug)
 
-    async def get_by_owner(self, owner_id: UUID) -> List[Organization]:
+    async def get_by_owner(self, owner_id: UUID) -> list[Organization]:
         """Get all organizations owned by user"""
         return await self.get_all(owner_id=owner_id)
 

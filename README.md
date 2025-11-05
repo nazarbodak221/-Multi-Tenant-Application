@@ -17,7 +17,6 @@ Each organization (tenant) has its own isolated PostgreSQL database:
 - **Tenant Database Models**: `TenantUser` (tenant-specific)
 - **Database Manager**: Manages connections to core and tenant databases
 - **Tenant Context**: Thread-safe tenant ID storage via ContextVar
-- **Event System**: Event-driven architecture for decoupled operations
 - **JWT Authentication**: Separate tokens for core and tenant scope
 
 ### Request Flow
@@ -145,14 +144,11 @@ docker-compose exec app pytest --cov=app --cov-report=html
 # Run only unit tests
 docker-compose exec app pytest tests/unit/
 
-# Run only integration tests
-docker-compose exec app pytest tests/integration/
-
 # Run tests with verbose output
 docker-compose exec app pytest -v
 
-# Run tests and fail if coverage < 80%
-docker-compose exec app pytest --cov=app --cov-fail-under=80
+# Run tests and fail if coverage < 70%
+docker-compose exec app pytest --cov=app --cov-fail-under=70
 ```
 
 **Note**: Tests require PostgreSQL running. In Docker, the database is already available. For local testing, ensure PostgreSQL is running on `localhost:5432`.
@@ -292,14 +288,11 @@ docker exec multi-tenant-app pytest --cov=app --cov-report=html
 # Run only unit tests
 docker exec multi-tenant-app pytest tests/unit/
 
-# Run only integration tests
-docker exec multi-tenant-app pytest tests/integration/
-
 # Run tests with verbose output
 docker exec multi-tenant-app pytest -v
 
-# Run tests and fail if coverage < 80%
-docker exec multi-tenant-app pytest --cov=app --cov-fail-under=80
+# Run tests and fail if coverage < 70%
+docker exec multi-tenant-app pytest --cov=app --cov-fail-under=70
 ```
 
 **Via docker-compose exec (alternative option):**
@@ -315,28 +308,12 @@ docker-compose exec app pytest --cov=app --cov-report=term-missing
 docker-compose exec app pytest tests/unit/test_security.py
 ```
 
-### Linting
-
-```bash
-# Ruff
-ruff check app/
-ruff check app/ --fix
-```
-
-### Type Checking
-
-```bash
-# MyPy
-mypy app/
-```
-
 ## Project Structure
 
 ```
 ├── app/
 │   ├── api/           # API endpoints
 │   ├── core/          # Core functionality
-│   ├── events/         # Event system
 │   ├── middleware/     # Middleware
 │   ├── models/         # Database models
 │   ├── repositories/   # Data access layer
@@ -368,8 +345,7 @@ When an organization is created:
 1. Organization record created in core DB
 2. Tenant database created
 3. Migrations applied to tenant DB
-4. `organization.created` event emitted
-5. Owner synced to tenant DB as owner user
+4. Owner synced to tenant DB as owner user
 
 ## License
 

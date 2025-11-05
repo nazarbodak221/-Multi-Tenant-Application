@@ -2,7 +2,7 @@
 Unit tests for security utilities
 """
 
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 
@@ -13,9 +13,6 @@ from app.core.security import (
     TokenScope,
     create_core_token,
     create_tenant_token,
-    decode_token,
-    hash_password,
-    verify_password,
 )
 
 

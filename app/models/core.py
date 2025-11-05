@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 from tortoise import fields, models
@@ -60,7 +59,7 @@ class User_Pydantic(BaseModel):
 
     id: str
     email: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -71,7 +70,7 @@ class UserIn_Pydantic(BaseModel):
 
     email: str
     password: str
-    full_name: Optional[str] = None
+    full_name: str | None = None
 
 
 class Organization_Pydantic(BaseModel):
@@ -84,4 +83,4 @@ class Organization_Pydantic(BaseModel):
     owner_id: str
     is_active: bool
     created_at: datetime
-    updated_at: Optional[datetime] = None
+    updated_at: datetime | None = None

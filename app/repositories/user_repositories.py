@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from app.models.core import User
@@ -12,12 +11,12 @@ class UserRepository(BaseRepository[User]):
     def __init__(self):
         super().__init__(User)
 
-    async def get_by_email(self, email: str) -> Optional[User]:
+    async def get_by_email(self, email: str) -> User | None:
         """Get user by email"""
         return await self.get_by_field(email=email)
 
     async def create_user(
-        self, email: str, hashed_password: str, full_name: Optional[str] = None
+        self, email: str, hashed_password: str, full_name: str | None = None
     ) -> User:
         """Create new user"""
         return await self.create(
@@ -31,7 +30,7 @@ class TenantUserRepository(BaseRepository[TenantUser]):
     def __init__(self):
         super().__init__(TenantUser)
 
-    async def get_by_email(self, email: str) -> Optional[TenantUser]:
+    async def get_by_email(self, email: str) -> TenantUser | None:
         """Get tenant user by email"""
         return await self.get_by_field(email=email)
 
@@ -39,7 +38,7 @@ class TenantUserRepository(BaseRepository[TenantUser]):
         self,
         email: str,
         hashed_password: str,
-        full_name: Optional[str] = None,
+        full_name: str | None = None,
         is_owner: bool = False,
         **extra_data
     ) -> TenantUser:
@@ -54,6 +53,6 @@ class TenantUserRepository(BaseRepository[TenantUser]):
 
     async def update_profile(
         self, user_id: UUID, **profile_data
-    ) -> Optional[TenantUser]:
+    ) -> TenantUser | None:
         """Update user profile"""
         return await self.update(user_id, **profile_data)

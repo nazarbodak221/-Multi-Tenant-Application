@@ -1,4 +1,4 @@
-from typing import Generic, List, Optional, Type, TypeVar
+from typing import Generic, TypeVar
 from uuid import UUID
 
 from tortoise.exceptions import DoesNotExist
@@ -13,17 +13,17 @@ class BaseRepository(Generic[ModelType]):
     Follows repository pattern for data access abstraction
     """
 
-    def __init__(self, model: Type[ModelType]):
+    def __init__(self, model: type[ModelType]):
         self.model = model
 
-    async def get_by_id(self, id: UUID) -> Optional[ModelType]:
+    async def get_by_id(self, id: UUID) -> ModelType | None:
         """Get entity by ID"""
         try:
             return await self.model.get(id=id)
         except DoesNotExist:
             return None
 
-    async def get_by_field(self, **filters) -> Optional[ModelType]:
+    async def get_by_field(self, **filters) -> ModelType | None:
         """Get entity by field filters"""
         try:
             return await self.model.get(**filters)
@@ -32,7 +32,7 @@ class BaseRepository(Generic[ModelType]):
 
     async def get_all(
         self, skip: int = 0, limit: int = 100, **filters
-    ) -> List[ModelType]:
+    ) -> list[ModelType]:
         """Get all entities with pagination"""
         query = self.model.filter(**filters)
         return await query.offset(skip).limit(limit).all()
@@ -43,7 +43,7 @@ class BaseRepository(Generic[ModelType]):
         await instance.save()
         return instance
 
-    async def update(self, id: UUID, **data) -> Optional[ModelType]:
+    async def update(self, id: UUID, **data) -> ModelType | None:
         """Update entity by ID"""
         instance = await self.get_by_id(id)
         if instance:

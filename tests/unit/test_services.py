@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 
-from app.core.exceptions import AuthenticationError, ConflictError, NotFoundError
+from app.core.exceptions import AuthenticationError, ConflictError
 from app.services.auth_service import AuthService
 from app.services.organization_service import OrganizationService
 from app.services.user_service import UserService

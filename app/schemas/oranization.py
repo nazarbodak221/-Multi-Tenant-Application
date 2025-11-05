@@ -1,11 +1,10 @@
-from typing import Optional
 
 from pydantic import BaseModel
 
 
 class CreateOrganizationRequest(BaseModel):
     name: str
-    slug: Optional[str] = None
+    slug: str | None = None
 
 
 class OrganizationResponse(BaseModel):
@@ -16,4 +15,4 @@ class OrganizationResponse(BaseModel):
     owner_id: str
     is_active: bool
     created_at: str
-    updated_at: Optional[str] = None
+    updated_at: str | None = None

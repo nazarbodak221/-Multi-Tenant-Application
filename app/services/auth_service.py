@@ -1,10 +1,9 @@
-from typing import Any, Dict, Optional
-from uuid import UUID
+from typing import Any
 
 from tortoise import Tortoise
 
 from app.core.database import db_manager
-from app.core.exceptions import AuthenticationError, ConflictError, NotFoundError
+from app.core.exceptions import AuthenticationError, ConflictError
 from app.core.security import (
     TokenScope,
     create_core_token,
@@ -12,7 +11,6 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.models.core import User
 from app.models.tenant import TenantUser
 from app.repositories.user_repositories import TenantUserRepository, UserRepository
 
@@ -25,8 +23,8 @@ class AuthService:
         self.tenant_user_repo = TenantUserRepository()
 
     async def register_core_user(
-        self, email: str, password: str, full_name: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, email: str, password: str, full_name: str | None = None
+    ) -> dict[str, Any]:
         """
         Register a new platform-level user
 
@@ -66,7 +64,7 @@ class AuthService:
             "scope": TokenScope.CORE,
         }
 
-    async def login_core_user(self, email: str, password: str) -> Dict[str, Any]:
+    async def login_core_user(self, email: str, password: str) -> dict[str, Any]:
         """
         Login core user
 
@@ -110,10 +108,10 @@ class AuthService:
         tenant_id: str,
         email: str,
         password: str,
-        full_name: Optional[str] = None,
+        full_name: str | None = None,
         is_owner: bool = False,
         **extra_data,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Register a new tenant user
 
@@ -173,7 +171,7 @@ class AuthService:
 
     async def login_tenant_user(
         self, tenant_id: str, email: str, password: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Login tenant user
 

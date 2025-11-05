@@ -1,5 +1,4 @@
 from contextvars import ContextVar
-from typing import Optional
 
 from fastapi import Header, HTTPException, status
 
@@ -7,7 +6,7 @@ from app.config import get_settings
 
 settings = get_settings()
 
-current_tenant: ContextVar[Optional[str]] = ContextVar("current_tenant", default=None)
+current_tenant: ContextVar[str | None] = ContextVar("current_tenant", default=None)
 
 
 class TenantContext:
@@ -22,7 +21,7 @@ class TenantContext:
         current_tenant.set(tenant_id)
 
     @staticmethod
-    def get_tenant() -> Optional[str]:
+    def get_tenant() -> str | None:
         """Get current tenant from context"""
         return current_tenant.get()
 
@@ -52,8 +51,8 @@ class TenantContext:
 
 
 async def get_optional_tenant_from_header(
-    x_tenant: Optional[str] = Header(None, alias=settings.TENANT_HEADER_NAME)
-) -> Optional[str]:
+    x_tenant: str | None = Header(None, alias=settings.TENANT_HEADER_NAME)
+) -> str | None:
     """
     Dependency to extract optional tenant header
     Note: This reads from header, but middleware already sets context
@@ -63,7 +62,7 @@ async def get_optional_tenant_from_header(
 
 
 async def get_required_tenant_from_header(
-    x_tenant: Optional[str] = Header(None, alias=settings.TENANT_HEADER_NAME)
+    x_tenant: str | None = Header(None, alias=settings.TENANT_HEADER_NAME)
 ) -> str:
     """
     Dependency to extract and validate required tenant header
@@ -78,7 +77,7 @@ async def get_required_tenant_from_header(
     return x_tenant
 
 
-async def get_tenant_from_context() -> Optional[str]:
+async def get_tenant_from_context() -> str | None:
     """
     FastAPI dependency to get tenant from context
     Middleware should have already set it from header

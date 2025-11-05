@@ -1,7 +1,6 @@
 import logging
-import warnings
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 from uuid import UUID
 
 import bcrypt
@@ -51,7 +50,7 @@ class JWTHandler:
 
     @staticmethod
     def create_access_token(
-        data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+        data: dict[str, Any], expires_delta: timedelta | None = None
     ) -> str:
         """
         Create a JWT access token
@@ -81,7 +80,7 @@ class JWTHandler:
 
     @staticmethod
     def create_token_for_core_user(
-        user_id: UUID, email: str, expires_delta: Optional[timedelta] = None
+        user_id: UUID, email: str, expires_delta: timedelta | None = None
     ) -> str:
         """
         Create a token for platform-level user
@@ -107,7 +106,7 @@ class JWTHandler:
         user_id: UUID,
         email: str,
         tenant_id: str,
-        expires_delta: Optional[timedelta] = None,
+        expires_delta: timedelta | None = None,
     ) -> str:
         """
         Create a token for tenant user
@@ -130,7 +129,7 @@ class JWTHandler:
         return JWTHandler.create_access_token(payload, expires_delta)
 
     @staticmethod
-    def decode_token(token: str) -> Dict[str, Any]:
+    def decode_token(token: str) -> dict[str, Any]:
         """
         Decode and validate a JWT token
 
@@ -152,7 +151,7 @@ class JWTHandler:
             raise AuthenticationError(f"Invalid token: {str(e)}")
 
     @staticmethod
-    def get_token_payload(token: str) -> Dict[str, Any]:
+    def get_token_payload(token: str) -> dict[str, Any]:
         """
         Get token payload with validation
         Alias for decode_token for clarity
@@ -167,7 +166,7 @@ class JWTHandler:
 
     @staticmethod
     def validate_token_scope(
-        payload: Dict[str, Any], required_scope: str, tenant_id: Optional[str] = None
+        payload: dict[str, Any], required_scope: str, tenant_id: str | None = None
     ) -> bool:
         """
         Validate token scope and tenant access
@@ -204,7 +203,7 @@ class JWTHandler:
         return True
 
     @staticmethod
-    def extract_user_id(payload: Dict[str, Any]) -> UUID:
+    def extract_user_id(payload: dict[str, Any]) -> UUID:
         user_id_str = payload.get("user_id")
         if not user_id_str:
             raise ValidationError("user_id is missing from token")
@@ -215,21 +214,21 @@ class JWTHandler:
             raise ValidationError(f"Invalid user_id format: {user_id_str}")
 
     @staticmethod
-    def extract_email(payload: Dict[str, Any]) -> str:
+    def extract_email(payload: dict[str, Any]) -> str:
         email = payload.get("email")
         if not email:
             raise ValidationError("email is missing from token")
         return email
 
     @staticmethod
-    def extract_scope(payload: Dict[str, Any]) -> str:
+    def extract_scope(payload: dict[str, Any]) -> str:
         scope = payload.get("scope")
         if not scope:
             raise ValidationError("scope is missing from token")
         return scope
 
     @staticmethod
-    def extract_tenant_id(payload: Dict[str, Any]) -> Optional[str]:
+    def extract_tenant_id(payload: dict[str, Any]) -> str | None:
         return payload.get("tenant_id")
 
 
@@ -242,18 +241,18 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_core_token(
-    user_id: UUID, email: str, expires_delta: Optional[timedelta] = None
+    user_id: UUID, email: str, expires_delta: timedelta | None = None
 ) -> str:
     return JWTHandler.create_token_for_core_user(user_id, email, expires_delta)
 
 
 def create_tenant_token(
-    user_id: UUID, email: str, tenant_id: str, expires_delta: Optional[timedelta] = None
+    user_id: UUID, email: str, tenant_id: str, expires_delta: timedelta | None = None
 ) -> str:
     return JWTHandler.create_token_for_tenant_user(
         user_id, email, tenant_id, expires_delta
     )
 
 
-def decode_token(token: str) -> Dict[str, Any]:
+def decode_token(token: str) -> dict[str, Any]:
     return JWTHandler.decode_token(token)
