@@ -157,15 +157,15 @@ docker-compose exec app pytest --cov=app --cov-fail-under=80
 
 **Note**: Tests require PostgreSQL running. In Docker, the database is already available. For local testing, ensure PostgreSQL is running on `localhost:5432`.
 
-#### Docker Compose для тестів
+#### Docker Compose for tests
 
-Можна використати окремий compose файл для тестів:
+You can use a dedicated compose file for running tests:
 
 ```bash
-# Запустити тести з окремою БД
+# Run tests with an isolated database
 docker-compose -f docker-compose.test.yml up --abort-on-container-exit
 
-# Після тестів - очистити
+# Tear everything down when finished
 docker-compose -f docker-compose.test.yml down -v
 ```
 
@@ -273,7 +273,7 @@ pytest tests/unit/test_security.py
 
 #### Docker
 
-**Via docker exec (Recommended - найпростіший спосіб):**
+**Via docker exec (Recommended - easiest option):**
 
 ```bash
 # Run all tests
@@ -302,7 +302,7 @@ docker exec multi-tenant-app pytest -v
 docker exec multi-tenant-app pytest --cov=app --cov-fail-under=80
 ```
 
-**Via docker-compose exec (альтернативний спосіб):**
+**Via docker-compose exec (alternative option):**
 
 ```bash
 # Run all tests
@@ -360,7 +360,7 @@ mypy app/
 5. Login tenant user: `POST /api/v1/auth/login` (with X-Tenant-Id header)
 6. Get tenant profile: `GET /api/v1/users/me` (with tenant token + X-Tenant-Id)
 
-**Swagger UI**: `http://localhost:8000/docs` для інтерактивного тестування
+**Swagger UI**: `http://localhost:8000/docs` for interactive testing
 
 ### Creating Organization
 

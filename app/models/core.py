@@ -54,7 +54,6 @@ class Organization(models.Model):
         return f"Organization({self.name})"
 
 
-# Pydantic models for serialization
 class User_Pydantic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     

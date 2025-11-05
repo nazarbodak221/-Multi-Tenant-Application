@@ -20,19 +20,15 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
         Extract tenant ID from header and set in context
         Clears context after request completes
         """
-        # Extract tenant ID from header
         tenant_id: Optional[str] = request.headers.get(
             settings.TENANT_HEADER_NAME, None
         )
 
-        # Set tenant in context if present
         if tenant_id:
             TenantContext.set_tenant(tenant_id)
 
         try:
-            # Process request
             response = await call_next(request)
             return response
         finally:
-            # Always clear tenant context after request
             TenantContext.clear_tenant()

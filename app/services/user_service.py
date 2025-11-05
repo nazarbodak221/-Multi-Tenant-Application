@@ -168,16 +168,13 @@ class UserService:
         if avatar_url is not None:
             update_data["avatar_url"] = avatar_url
 
-        # Handle metadata update
         if "metadata" in extra_data:
-            # Merge with existing metadata
             existing_metadata = user.metadata or {}
             new_metadata = extra_data.pop("metadata")
             if isinstance(new_metadata, dict):
                 existing_metadata.update(new_metadata)
                 update_data["metadata"] = existing_metadata
 
-        # Add other extra data (filter to only allow safe fields)
         allowed_fields = {"full_name", "phone", "avatar_url", "metadata"}
         for key, value in extra_data.items():
             if key in allowed_fields:

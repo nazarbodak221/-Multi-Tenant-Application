@@ -47,7 +47,6 @@ async def update_my_profile(
     user, tenant_id = user_tenant
 
     try:
-        # Prepare update data
         update_data = {}
         if request.full_name is not None:
             update_data["full_name"] = request.full_name

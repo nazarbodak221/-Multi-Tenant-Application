@@ -7,7 +7,6 @@ from app.config import get_settings
 
 settings = get_settings()
 
-# Context variable for current tenant
 current_tenant: ContextVar[Optional[str]] = ContextVar("current_tenant", default=None)
 
 
@@ -92,12 +91,6 @@ async def require_tenant_from_context() -> str:
     FastAPI dependency to require tenant from context
     Raises exception if tenant is not set
     Use this in endpoints that require tenant context
-
-    Example:
-        @app.get("/users")
-        async def get_users(tenant_id: str = Depends(require_tenant_from_context)):
-            # tenant_id is guaranteed to be set here
-            pass
     """
     tenant_id = TenantContext.get_tenant()
     if not tenant_id:

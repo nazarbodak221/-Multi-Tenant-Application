@@ -24,10 +24,8 @@ async def lifespan(app: FastAPI):
     Lifespan context manager for FastAPI.
     Handles database initialization on startup and cleanup on shutdown.
     """
-    # Startup: Initialize core database
     await db_manager.init_core_db()
     yield
-    # Shutdown: Close all database connections
     await db_manager.close_all()
 
 
@@ -37,10 +35,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Add tenant context middleware
 app.add_middleware(TenantContextMiddleware)
-
-# Include API routers
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(organizations.router, prefix=settings.API_V1_PREFIX)
 app.include_router(users.router, prefix=settings.API_V1_PREFIX)

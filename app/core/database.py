@@ -25,7 +25,6 @@ def get_tortoise_orm_config() -> dict:
     }
 
 
-# Export for Aerich (will be evaluated at runtime)
 TORTOISE_ORM = get_tortoise_orm_config()
 
 
@@ -66,14 +65,10 @@ class DatabaseManager:
         if self._core_initialized:
             return
 
-        # Build connections dict starting with default
-        # Tortoise ORM 0.21.0 supports both URL strings and structured format
-        # Using URL strings for compatibility
         connections_dict = {
             "default": settings.core_database_url,
         }
 
-        # Add all existing tenant connections
         for tenant_id in self._tenant_connections.keys():
             connection_name = self.get_tenant_connection_name(tenant_id)
             connections_dict[connection_name] = settings.tenant_database_url(tenant_id)
@@ -117,13 +112,10 @@ class DatabaseManager:
             await Tortoise.close_connections()
             self._core_initialized = False
 
-        # Re-initialize with all connections
-        # Using URL strings for compatibility
         connections_dict = {
             "default": settings.core_database_url,
         }
 
-        # Add all tenant connections including new one
         for tid in self._tenant_connections.keys():
             conn_name = self.get_tenant_connection_name(tid)
             connections_dict[conn_name] = settings.tenant_database_url(tid)
@@ -145,9 +137,6 @@ class DatabaseManager:
         }
         await Tortoise.init(config=config)
 
-        # Don't generate schemas here - use migrations instead
-        # Schemas will be created via Aerich migrations
-
     def get_tenant_connection_name(self, tenant_id: str) -> str:
         """Get connection name for tenant"""
         return f"tenant_{tenant_id}"
@@ -160,7 +149,6 @@ class DatabaseManager:
         db_name = f"tenant_{tenant_id}"
 
         try:
-            # Connect to postgres database to create new database
             conn = await asyncpg.connect(
                 host=settings.TENANT_DB_HOST,
                 port=settings.TENANT_DB_PORT,
@@ -210,15 +198,7 @@ class DatabaseManager:
             yield connection
 
     def get_tenant_model(self, tenant_id: str, model_class):
-        """
-        Get model class configured for specific tenant connection
-        Returns the model class itself - use .using() on QuerySet operations
-        
-        Usage:
-            TenantUserModel = db_manager.get_tenant_model(tenant_id, TenantUser)
-            user = await TenantUserModel.all().using(connection_name).get(email=email)
-            # Or simpler: use filter/get on model with connection context
-        """
+        """Return model class bound to a specific tenant connection"""
         return model_class
 
     async def close_all(self):

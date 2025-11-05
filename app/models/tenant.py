@@ -29,7 +29,6 @@ class TenantUser(models.Model):
         return f"TenantUser({self.email})"
 
 
-# Pydantic models
 class TenantUser_Pydantic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     

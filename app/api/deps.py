@@ -93,7 +93,6 @@ async def get_current_user_tenant(
         if not tenant_id:
             raise AuthenticationError("Tenant ID is missing from token")
 
-        # Optional: verify header matches token if header is provided
         if x_tenant_header and x_tenant_header != tenant_id:
             raise AuthorizationError(
                 f"X-Tenant-Id header '{x_tenant_header}' does not match token tenant '{tenant_id}'"

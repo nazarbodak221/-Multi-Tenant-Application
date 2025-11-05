@@ -22,12 +22,9 @@ class OrganizationService:
     def generate_slug(name: str) -> str:
         """Generate URL-friendly slug from organization name"""
         slug = name.lower()
-        # Replace spaces and special chars with hyphens
         slug = re.sub(r"[^\w\s-]", "", slug)
         slug = re.sub(r"[-\s]+", "-", slug)
-        # Remove leading/trailing hyphens
-        slug = slug.strip("-")
-        return slug
+        return slug.strip("-")
 
     @staticmethod
     def generate_database_name(org_id: str) -> str:
@@ -72,12 +69,10 @@ class OrganizationService:
         )
         await organization.save()
 
-        # Generate database name from organization ID
         database_name = self.generate_database_name(str(organization.id))
         organization.database_name = database_name
         await organization.save()
 
-        # Create tenant database
         tenant_id = str(organization.id)
         db_created = await db_manager.create_tenant_database(tenant_id)
 
@@ -86,7 +81,6 @@ class OrganizationService:
             await organization.delete()
             raise DatabaseError("Failed to create tenant database")
 
-        # Apply migrations to tenant database
         from app.core.migrations import apply_migrations_to_tenant
 
         migrations_applied = await apply_migrations_to_tenant(tenant_id)
@@ -99,18 +93,7 @@ class OrganizationService:
 
         await db_manager.init_tenant_db(tenant_id)
 
-        # Emit organization.created event
-        from app.events.emitter import EventType, event_emitter
-
-        await event_emitter.emit(
-            EventType.ORGANIZATION_CREATED,
-            {
-                "organization_id": str(organization.id),
-                "organization_name": organization.name,
-                "owner_id": str(owner.id),
-                "owner_email": owner.email,
-            },
-        )
+        await self._sync_owner_to_tenant(tenant_id, owner)
 
         return {
             "id": str(organization.id),
@@ -140,16 +123,12 @@ class OrganizationService:
         connection_name = db_manager.get_tenant_connection_name(tenant_id)
         conn = Tortoise.get_connection(connection_name)
 
-        # Check if owner already exists in tenant
         existing_owner = await TenantUser.filter(email=owner.email).using_db(conn).first()
 
         if not existing_owner:
-            # Create owner user in tenant database
             from app.core.security import hash_password
 
-            default_password = hash_password(
-                "changeme123"
-            )  # Should be changed on first login
+            default_password = hash_password("changeme123")
 
             await TenantUser.using_db(conn).create(
                 email=owner.email,

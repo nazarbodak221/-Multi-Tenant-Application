@@ -20,12 +20,7 @@ class PasswordHasher:
 
     @staticmethod
     def hash_password(password: str) -> str:
-        """
-        Hash a password using bcrypt.
-        
-        Bcrypt has a 72-byte limit, so we truncate longer passwords.
-        """
-        # Bcrypt has a 72-byte limit, truncate if necessary
+        """Hash a password using bcrypt, truncating to 72 bytes if needed."""
         password_bytes = password.encode('utf-8')
         if len(password_bytes) > 72:
             password_bytes = password_bytes[:72]
@@ -37,16 +32,8 @@ class PasswordHasher:
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """
-        Verify a password against its hash.
-
-        Args:
-            plain_password: Plain text password to verify
-            hashed_password: Hashed password to compare against
-
-        Returns:
-            True if password matches, False otherwise
+        Verify a password against its hash, truncating to 72 bytes if needed.
         """
-        # Bcrypt has a 72-byte limit, truncate if necessary
         password_bytes = plain_password.encode('utf-8')
         if len(password_bytes) > 72:
             password_bytes = password_bytes[:72]
@@ -55,10 +42,8 @@ class PasswordHasher:
 
 
 class TokenScope:
-    """Token scope constants"""
-
-    CORE = "core"  # Platform-level access
-    TENANT = "tenant"  # Tenant-level access
+    CORE = "core"
+    TENANT = "tenant"
 
 
 class JWTHandler:
@@ -246,9 +231,6 @@ class JWTHandler:
     @staticmethod
     def extract_tenant_id(payload: Dict[str, Any]) -> Optional[str]:
         return payload.get("tenant_id")
-
-
-# Convenience functions
 def hash_password(password: str) -> str:
     return PasswordHasher.hash_password(password)
 

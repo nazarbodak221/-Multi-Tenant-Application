@@ -22,7 +22,6 @@ async def register(request: RegisterRequest, tenant_id: Optional[str] = Depends(
     """
     try:
         if tenant_id:
-            # Register tenant user
             result = await auth_service.register_tenant_user(
                 tenant_id=tenant_id,
                 email=request.email,
@@ -30,7 +29,6 @@ async def register(request: RegisterRequest, tenant_id: Optional[str] = Depends(
                 full_name=request.full_name,
             )
         else:
-            # Register core user
             result = await auth_service.register_core_user(
                 email=request.email,
                 password=request.password,
@@ -54,12 +52,10 @@ async def login(request: LoginRequest, tenant_id: Optional[str] = Depends(get_te
     """
     try:
         if tenant_id:
-            # Login tenant user
             result = await auth_service.login_tenant_user(
                 tenant_id=tenant_id, email=request.email, password=request.password
             )
         else:
-            # Login core user
             result = await auth_service.login_core_user(
                 email=request.email, password=request.password
             )
