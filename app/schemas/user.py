@@ -1,4 +1,5 @@
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
 
 
@@ -30,4 +31,3 @@ class UpdateProfileRequest(BaseModel):
     phone: Optional[str] = None
     avatar_url: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
-

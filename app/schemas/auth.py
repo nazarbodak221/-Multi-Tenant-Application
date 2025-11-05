@@ -1,4 +1,5 @@
 from typing import Optional
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -34,4 +35,3 @@ class AuthResponse(BaseModel):
     token_type: str = "bearer"
     scope: str
     tenant_id: Optional[str] = None
-

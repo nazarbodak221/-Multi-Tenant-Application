@@ -1,11 +1,13 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from app.core.database import db_manager
-from app.middleware.tenant_context import TenantContextMiddleware
-from app.middleware.logging import StructuredLoggingMiddleware, setup_logging
-from app.events.handlers import register_handlers
-from app.config import get_settings
+
 from app.api.v1 import auth, organizations, users
+from app.config import get_settings
+from app.core.database import db_manager
+from app.events.handlers import register_handlers
+from app.middleware.logging import StructuredLoggingMiddleware, setup_logging
+from app.middleware.tenant_context import TenantContextMiddleware
 
 settings = get_settings()
 

@@ -1,25 +1,31 @@
 """
 Test configuration and fixtures
 """
-import pytest
+
 import asyncio
 from typing import AsyncGenerator, Generator
+
+import asyncpg
+import pytest
 from httpx import AsyncClient
 from tortoise import Tortoise
-from app.main import app
-from app.core.database import db_manager
-from app.models.core import User, Organization
-from app.models.tenant import TenantUser
-from app.core.security import hash_password, create_core_token, create_tenant_token
-import asyncpg
 
+from app.core.database import db_manager
+from app.core.security import (create_core_token, create_tenant_token,
+                               hash_password)
+from app.main import app
+from app.models.core import Organization, User
+from app.models.tenant import TenantUser
 
 # Test database configuration
 TEST_CORE_DB_URL = "postgres://postgres:postgres@localhost:5432/test_core"
-TEST_TENANT_DB_URL_TEMPLATE = "postgres://postgres:postgres@localhost:5432/test_tenant_{}"
+TEST_TENANT_DB_URL_TEMPLATE = (
+    "postgres://postgres:postgres@localhost:5432/test_tenant_{}"
+)
 
 # Override settings for tests
 import os
+
 # Set environment variables before importing settings
 os.environ.setdefault("CORE_DB_HOST", "localhost")
 os.environ.setdefault("CORE_DB_PORT", "5432")
@@ -36,6 +42,7 @@ os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 
 # Clear settings cache to reload with test values
 from app.config import get_settings
+
 get_settings.cache_clear()
 settings = get_settings()
 
@@ -60,29 +67,29 @@ async def core_db() -> AsyncGenerator:
         port=5432,
         user="postgres",
         password="postgres",
-        database="postgres"
+        database="postgres",
     )
-    
+
     # Drop test database if exists
     await conn.execute("DROP DATABASE IF EXISTS test_core")
     await conn.execute("CREATE DATABASE test_core")
     await conn.close()
-    
+
     # Initialize core DB through db_manager
     await db_manager.init_core_db()
-    
+
     yield
-    
+
     # Cleanup
     await db_manager.close_all()
-    
+
     # Drop test database
     conn = await asyncpg.connect(
         host="localhost",
         port=5432,
         user="postgres",
         password="postgres",
-        database="postgres"
+        database="postgres",
     )
     await conn.execute("DROP DATABASE IF EXISTS test_core")
     await conn.close()
@@ -97,36 +104,36 @@ async def tenant_db(core_db) -> AsyncGenerator:
     """
     tenant_id = "test_tenant_123"
     db_name = f"test_tenant_{tenant_id}"
-    
+
     # Create test tenant database
     conn = await asyncpg.connect(
         host="localhost",
         port=5432,
         user="postgres",
         password="postgres",
-        database="postgres"
+        database="postgres",
     )
-    
+
     # Drop test database if exists
     await conn.execute(f'DROP DATABASE IF EXISTS "{db_name}"')
     await conn.execute(f'CREATE DATABASE "{db_name}"')
     await conn.close()
-    
+
     # Initialize tenant DB through db_manager
     await db_manager.init_tenant_db(tenant_id)
-    
+
     yield tenant_id
-    
+
     # Cleanup
     await db_manager.close_all()
-    
+
     # Drop test database
     conn = await asyncpg.connect(
         host="localhost",
         port=5432,
         user="postgres",
         password="postgres",
-        database="postgres"
+        database="postgres",
     )
     await conn.execute(f'DROP DATABASE IF EXISTS "{db_name}"')
     await conn.close()
@@ -139,7 +146,7 @@ async def core_user(core_db) -> User:
         email="test@example.com",
         hashed_password=hash_password("testpass123"),
         full_name="Test User",
-        is_active=True
+        is_active=True,
     )
     return user
 
@@ -155,19 +162,19 @@ async def tenant_user(tenant_db) -> TenantUser:
     """Create a test tenant user"""
     tenant_id = tenant_db
     tenant_url = TEST_TENANT_DB_URL_TEMPLATE.format(tenant_id)
-    
+
     # Initialize tenant connection
     await db_manager.init_tenant_db(tenant_id)
-    
+
     # Get tenant model
     TenantUserModel = db_manager.get_tenant_model(tenant_id, TenantUser)
-    
+
     user = await TenantUserModel.create(
         email="tenant@example.com",
         hashed_password=hash_password("testpass123"),
         full_name="Tenant User",
         is_active=True,
-        is_owner=False
+        is_owner=False,
     )
     return user
 
@@ -177,9 +184,7 @@ async def tenant_user_token(tenant_user, tenant_db) -> tuple[str, str]:
     """Create JWT token for tenant user"""
     tenant_id = tenant_db
     token = create_tenant_token(
-        user_id=tenant_user.id,
-        email=tenant_user.email,
-        tenant_id=tenant_id
+        user_id=tenant_user.id, email=tenant_user.email, tenant_id=tenant_id
     )
     return token, tenant_id
 
@@ -192,7 +197,7 @@ async def organization(core_user, core_db) -> Organization:
         slug="test-org",
         database_name="test_tenant_org123",
         owner_id=core_user.id,
-        is_active=True
+        is_active=True,
     )
     return org
 
@@ -205,19 +210,21 @@ async def test_client() -> AsyncGenerator[AsyncClient, None]:
 
 
 @pytest.fixture
-async def authenticated_core_client(core_user_token, test_client) -> AsyncGenerator[AsyncClient, None]:
+async def authenticated_core_client(
+    core_user_token, test_client
+) -> AsyncGenerator[AsyncClient, None]:
     """Create authenticated HTTP client for core user"""
     test_client.headers.update({"Authorization": f"Bearer {core_user_token}"})
     yield test_client
 
 
 @pytest.fixture
-async def authenticated_tenant_client(tenant_user_token, test_client) -> AsyncGenerator[AsyncClient, None]:
+async def authenticated_tenant_client(
+    tenant_user_token, test_client
+) -> AsyncGenerator[AsyncClient, None]:
     """Create authenticated HTTP client for tenant user"""
     token, tenant_id = tenant_user_token
-    test_client.headers.update({
-        "Authorization": f"Bearer {token}",
-        "X-Tenant-Id": tenant_id
-    })
+    test_client.headers.update(
+        {"Authorization": f"Bearer {token}", "X-Tenant-Id": tenant_id}
+    )
     yield test_client
-
