@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
     # Tenant
-    TENANT_HEADER_NAME: str = os.getenv("TENANT_HEADER_NAME")
+    TENANT_HEADER_NAME: str = os.getenv("TENANT_HEADER_NAME", "X-Tenant-Id")
 
     @property
     def core_database_url(self) -> str:
