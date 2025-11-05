@@ -1,5 +1,7 @@
 from tortoise import fields, models
-from tortoise.contrib.pydantic import pydantic_model_creator
+from pydantic import BaseModel, ConfigDict
+from typing import Optional
+from datetime import datetime
 
 
 class User(models.Model):
@@ -42,7 +44,7 @@ class Organization(models.Model):
 
     # Relationships
     owner: fields.ForeignKeyRelation[User] = fields.ForeignKeyField(
-        "models.User", related_name="owned_organizations"
+        "core.User", related_name="owned_organizations"
     )
 
     class Meta:
@@ -53,6 +55,33 @@ class Organization(models.Model):
 
 
 # Pydantic models for serialization
-User_Pydantic = pydantic_model_creator(User, name="User", exclude=("hashed_password",))
-UserIn_Pydantic = pydantic_model_creator(User, name="UserIn", exclude_readonly=True)
-Organization_Pydantic = pydantic_model_creator(Organization, name="Organization")
+class User_Pydantic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: str
+    email: str
+    full_name: Optional[str] = None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class UserIn_Pydantic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    email: str
+    password: str
+    full_name: Optional[str] = None
+
+
+class Organization_Pydantic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: str
+    name: str
+    slug: str
+    database_name: str
+    owner_id: str
+    is_active: bool
+    created_at: datetime
+    updated_at: Optional[datetime] = None

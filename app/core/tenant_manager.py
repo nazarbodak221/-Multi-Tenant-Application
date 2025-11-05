@@ -99,4 +99,10 @@ async def require_tenant_from_context() -> str:
             # tenant_id is guaranteed to be set here
             pass
     """
-    return TenantContext.require_tenant()
+    tenant_id = TenantContext.get_tenant()
+    if not tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Tenant context is required but not set. Please provide {settings.TENANT_HEADER_NAME} header.",
+        )
+    return tenant_id

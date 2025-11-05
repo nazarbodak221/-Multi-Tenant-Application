@@ -3,12 +3,13 @@ from uuid import UUID
 
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from tortoise import Tortoise
 
 from app.config import get_settings
 from app.core.database import db_manager
 from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.core.security import JWTHandler, TokenScope, decode_token
-from app.core.tenant_manager import TenantContext, require_tenant_from_context
+from app.core.tenant_manager import TenantContext, require_tenant_from_context, get_tenant_from_context
 from app.models.core import User
 from app.models.tenant import TenantUser
 from app.repositories.user_repositories import UserRepository
@@ -63,18 +64,19 @@ async def get_current_user_core(
 
 async def get_current_user_tenant(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    tenant_id: str = Depends(require_tenant_from_context),
+    x_tenant_header: Optional[str] = Depends(get_tenant_from_context),
 ) -> Tuple[TenantUser, str]:
     """
     Dependency to get current tenant user from JWT token
-    Validates token, checks scope="tenant" and tenant_id match
+    Validates token, checks scope="tenant"
+    Uses tenant_id from token (not from header)
 
     Returns:
         Tuple of (TenantUser object, tenant_id)
 
     Raises:
         AuthenticationError: If token is invalid or user doesn't exist
-        AuthorizationError: If token scope is not "tenant" or tenant_id doesn't match
+        AuthorizationError: If token scope is not "tenant"
     """
     token = credentials.credentials
 
@@ -87,22 +89,24 @@ async def get_current_user_tenant(
                 f"Token scope '{scope}' is not valid for this endpoint. Required: 'tenant'"
             )
 
-        token_tenant_id = JWTHandler.extract_tenant_id(payload)
-        if not token_tenant_id:
+        tenant_id = JWTHandler.extract_tenant_id(payload)
+        if not tenant_id:
             raise AuthenticationError("Tenant ID is missing from token")
 
-        if token_tenant_id != tenant_id:
+        # Optional: verify header matches token if header is provided
+        if x_tenant_header and x_tenant_header != tenant_id:
             raise AuthorizationError(
-                f"Token tenant ID '{token_tenant_id}' does not match request tenant '{tenant_id}'"
+                f"X-Tenant-Id header '{x_tenant_header}' does not match token tenant '{tenant_id}'"
             )
 
         user_id = JWTHandler.extract_user_id(payload)
 
         await db_manager.init_tenant_db(tenant_id)
 
-        TenantUserModel = db_manager.get_tenant_model(tenant_id, TenantUser)
+        connection_name = db_manager.get_tenant_connection_name(tenant_id)
+        conn = Tortoise.get_connection(connection_name)
 
-        user = await TenantUserModel.get_or_none(id=user_id)
+        user = await TenantUser.filter(id=user_id).using_db(conn).first()
 
         if not user:
             raise AuthenticationError("User not found in tenant")

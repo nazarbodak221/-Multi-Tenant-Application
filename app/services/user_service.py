@@ -1,6 +1,8 @@
 from typing import Any, Dict, Optional
 from uuid import UUID
 
+from tortoise import Tortoise
+
 from app.core.database import db_manager
 from app.core.exceptions import NotFoundError, ValidationError
 from app.core.tenant_manager import TenantContext
@@ -97,9 +99,10 @@ class UserService:
 
         await db_manager.init_tenant_db(tenant_id)
 
-        TenantUserModel = db_manager.get_tenant_model(tenant_id, TenantUser)
+        connection_name = db_manager.get_tenant_connection_name(tenant_id)
 
-        user = await TenantUserModel.get_or_none(id=user_id)
+        conn = Tortoise.get_connection(connection_name)
+        user = await TenantUser.filter(id=user_id).using_db(conn).first()
         if not user:
             raise NotFoundError("TenantUser", str(user_id))
 
@@ -150,9 +153,10 @@ class UserService:
 
         await db_manager.init_tenant_db(tenant_id)
 
-        TenantUserModel = db_manager.get_tenant_model(tenant_id, TenantUser)
+        connection_name = db_manager.get_tenant_connection_name(tenant_id)
 
-        user = await TenantUserModel.get_or_none(id=user_id)
+        conn = Tortoise.get_connection(connection_name)
+        user = await TenantUser.filter(id=user_id).using_db(conn).first()
         if not user:
             raise NotFoundError("TenantUser", str(user_id))
 
@@ -184,7 +188,7 @@ class UserService:
 
         for key, value in update_data.items():
             setattr(user, key, value)
-        await user.save()
+        await user.save(using_db=conn)
 
         return {
             "id": str(user.id),

@@ -5,6 +5,8 @@ Event handlers for application events
 import logging
 from typing import Any, Dict
 
+from tortoise import Tortoise
+
 from app.core.database import db_manager
 from app.core.security import hash_password
 from app.events.emitter import EventType
@@ -46,9 +48,10 @@ async def handle_organization_created(data: Dict[str, Any]):
 
         await db_manager.init_tenant_db(tenant_id)
 
-        TenantUserModel = db_manager.get_tenant_model(tenant_id, TenantUser)
+        connection_name = db_manager.get_tenant_connection_name(tenant_id)
+        conn = Tortoise.get_connection(connection_name)
 
-        existing_owner = await TenantUserModel.get_or_none(email=owner_email)
+        existing_owner = await TenantUser.filter(email=owner_email).using_db(conn).first()
 
         if existing_owner:
             logger.info(
@@ -56,7 +59,7 @@ async def handle_organization_created(data: Dict[str, Any]):
                 extra={"tenant_id": tenant_id, "user_id": str(existing_owner.id)},
             )
             existing_owner.is_owner = True
-            await existing_owner.save()
+            await existing_owner.save(using_db=conn)
             return
 
         # Create owner user in tenant database
@@ -64,7 +67,7 @@ async def handle_organization_created(data: Dict[str, Any]):
             "changeme123"
         )  # Should be changed on first login
 
-        owner_user = await TenantUserModel.create(
+        owner_user = await TenantUser.using_db(conn).create(
             email=owner_email,
             hashed_password=default_password,
             full_name=None,

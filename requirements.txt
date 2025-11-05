@@ -84,6 +84,8 @@ pydantic-core==2.41.4
     # via pydantic
 pydantic-settings==2.5.0
     # via -r requirements.in
+email-validator>=2.0.0
+    # via -r requirements.in
 pypika-tortoise==0.1.6
     # via tortoise-orm
 pytest==8.3.0

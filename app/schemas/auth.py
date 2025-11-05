@@ -19,6 +19,7 @@ class UserResponse(BaseModel):
     email: str
     full_name: Optional[str] = None
     is_active: bool
+    is_owner: Optional[bool] = None
 
 
 class TenantUserResponse(BaseModel):
@@ -30,7 +31,7 @@ class TenantUserResponse(BaseModel):
 
 
 class AuthResponse(BaseModel):
-    user: dict
+    user: UserResponse
     access_token: str
     token_type: str = "bearer"
     scope: str

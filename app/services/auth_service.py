@@ -1,6 +1,8 @@
 from typing import Any, Dict, Optional
 from uuid import UUID
 
+from tortoise import Tortoise
+
 from app.core.database import db_manager
 from app.core.exceptions import (AuthenticationError, ConflictError,
                                  NotFoundError)
@@ -55,6 +57,7 @@ class AuthService:
                 "email": user.email,
                 "full_name": user.full_name,
                 "is_active": user.is_active,
+                "is_owner": None,
             },
             "access_token": access_token,
             "token_type": "bearer",
@@ -93,6 +96,7 @@ class AuthService:
                 "email": user.email,
                 "full_name": user.full_name,
                 "is_active": user.is_active,
+                "is_owner": None,
             },
             "access_token": access_token,
             "token_type": "bearer",
@@ -128,9 +132,10 @@ class AuthService:
         """
         await db_manager.init_tenant_db(tenant_id)
 
-        TenantUserModel = db_manager.get_tenant_model(tenant_id, TenantUser)
+        connection_name = db_manager.get_tenant_connection_name(tenant_id)
+        conn = Tortoise.get_connection(connection_name)
 
-        existing_user = await TenantUserModel.get_or_none(email=email)
+        existing_user = await TenantUser.filter(email=email).using_db(conn).first()
         if existing_user:
             raise ConflictError(
                 f"User with email {email} already exists in this tenant"
@@ -138,7 +143,7 @@ class AuthService:
 
         hashed_password = hash_password(password)
 
-        user = await TenantUserModel.create(
+        user = await TenantUser.using_db(conn).create(
             email=email,
             hashed_password=hashed_password,
             full_name=full_name,
@@ -184,9 +189,10 @@ class AuthService:
         """
         await db_manager.init_tenant_db(tenant_id)
 
-        TenantUserModel = db_manager.get_tenant_model(tenant_id, TenantUser)
+        connection_name = db_manager.get_tenant_connection_name(tenant_id)
+        conn = Tortoise.get_connection(connection_name)
 
-        user = await TenantUserModel.get_or_none(email=email)
+        user = await TenantUser.filter(email=email).using_db(conn).first()
         if not user:
             raise AuthenticationError("Invalid email or password")
 

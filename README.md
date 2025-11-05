@@ -127,6 +127,48 @@ http://localhost:8000
 docker-compose down
 ```
 
+### Running Tests in Docker
+
+```bash
+# Run all tests
+docker-compose exec app pytest
+
+# Run with coverage
+docker-compose exec app pytest --cov=app --cov-report=term-missing
+
+# Run specific test file
+docker-compose exec app pytest tests/unit/test_security.py
+
+# Run with HTML coverage report
+docker-compose exec app pytest --cov=app --cov-report=html
+
+# Run only unit tests
+docker-compose exec app pytest tests/unit/
+
+# Run only integration tests
+docker-compose exec app pytest tests/integration/
+
+# Run tests with verbose output
+docker-compose exec app pytest -v
+
+# Run tests and fail if coverage < 80%
+docker-compose exec app pytest --cov=app --cov-fail-under=80
+```
+
+**Note**: Tests require PostgreSQL running. In Docker, the database is already available. For local testing, ensure PostgreSQL is running on `localhost:5432`.
+
+#### Docker Compose для тестів
+
+Можна використати окремий compose файл для тестів:
+
+```bash
+# Запустити тести з окремою БД
+docker-compose -f docker-compose.test.yml up --abort-on-container-exit
+
+# Після тестів - очистити
+docker-compose -f docker-compose.test.yml down -v
+```
+
 ## Scripts
 
 ### Migration Scripts
@@ -216,6 +258,8 @@ python scripts/migrate_tenant.py
 
 ### Running Tests
 
+#### Local
+
 ```bash
 # All tests
 pytest
@@ -225,6 +269,50 @@ pytest --cov=app --cov-report=html
 
 # Specific test file
 pytest tests/unit/test_security.py
+```
+
+#### Docker
+
+**Via docker exec (Recommended - найпростіший спосіб):**
+
+```bash
+# Run all tests
+docker exec multi-tenant-app pytest
+
+# Run with coverage
+docker exec multi-tenant-app pytest --cov=app --cov-report=term-missing
+
+# Run specific test file
+docker exec multi-tenant-app pytest tests/unit/test_security.py
+
+# Run with HTML coverage report
+docker exec multi-tenant-app pytest --cov=app --cov-report=html
+# Coverage report will be in htmlcov/ directory (accessible via volume)
+
+# Run only unit tests
+docker exec multi-tenant-app pytest tests/unit/
+
+# Run only integration tests
+docker exec multi-tenant-app pytest tests/integration/
+
+# Run tests with verbose output
+docker exec multi-tenant-app pytest -v
+
+# Run tests and fail if coverage < 80%
+docker exec multi-tenant-app pytest --cov=app --cov-fail-under=80
+```
+
+**Via docker-compose exec (альтернативний спосіб):**
+
+```bash
+# Run all tests
+docker-compose exec app pytest
+
+# Run with coverage
+docker-compose exec app pytest --cov=app --cov-report=term-missing
+
+# Run specific test file
+docker-compose exec app pytest tests/unit/test_security.py
 ```
 
 ### Linting
@@ -261,16 +349,18 @@ mypy app/
 └── requirements.txt    # Dependencies
 ```
 
-## Workflow Examples
+## Manual Testing
 
-### Complete Flow
+### Quick Start
 
-1. Register core user
-2. Login core user
-3. Create organization (automatically creates tenant DB)
-4. Register tenant user (with X-Tenant-Id header)
-5. Login tenant user
-6. Access tenant resources
+1. Register core user: `POST /api/v1/auth/register`
+2. Login core user: `POST /api/v1/auth/login`
+3. Create organization: `POST /api/v1/organizations` (with core token)
+4. Register tenant user: `POST /api/v1/auth/register` (with X-Tenant-Id header)
+5. Login tenant user: `POST /api/v1/auth/login` (with X-Tenant-Id header)
+6. Get tenant profile: `GET /api/v1/users/me` (with tenant token + X-Tenant-Id)
+
+**Swagger UI**: `http://localhost:8000/docs` для інтерактивного тестування
 
 ### Creating Organization
 

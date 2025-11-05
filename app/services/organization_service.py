@@ -97,6 +97,8 @@ class OrganizationService:
             # Optionally drop database
             raise DatabaseError("Failed to apply migrations to tenant database")
 
+        await db_manager.init_tenant_db(tenant_id)
+
         # Emit organization.created event
         from app.events.emitter import EventType, event_emitter
 
@@ -115,9 +117,10 @@ class OrganizationService:
             "name": organization.name,
             "slug": organization.slug,
             "database_name": organization.database_name,
-            "owner_id": str(organization.owner_id),
+            "owner_id": str(owner_id),  
             "is_active": organization.is_active,
             "created_at": format_datetime(organization.created_at),
+            "updated_at": format_datetime(organization.updated_at) if organization.updated_at else None,
         }
 
     async def _sync_owner_to_tenant(self, tenant_id: str, owner: User) -> None:
@@ -132,10 +135,13 @@ class OrganizationService:
 
         from app.models.tenant import TenantUser
 
-        TenantUserModel = db_manager.get_tenant_model(tenant_id, TenantUser)
+        from tortoise import Tortoise
+
+        connection_name = db_manager.get_tenant_connection_name(tenant_id)
+        conn = Tortoise.get_connection(connection_name)
 
         # Check if owner already exists in tenant
-        existing_owner = await TenantUserModel.get_or_none(email=owner.email)
+        existing_owner = await TenantUser.filter(email=owner.email).using_db(conn).first()
 
         if not existing_owner:
             # Create owner user in tenant database
@@ -145,7 +151,7 @@ class OrganizationService:
                 "changeme123"
             )  # Should be changed on first login
 
-            await TenantUserModel.create(
+            await TenantUser.using_db(conn).create(
                 email=owner.email,
                 hashed_password=default_password,
                 full_name=owner.full_name,
@@ -178,8 +184,10 @@ class OrganizationService:
                 "name": org.name,
                 "slug": org.slug,
                 "database_name": org.database_name,
+                "owner_id": str(org.owner_id),
                 "is_active": org.is_active,
                 "created_at": format_datetime(org.created_at),
+                "updated_at": format_datetime(org.updated_at) if org.updated_at else None,
             }
             for org in organizations
         ]

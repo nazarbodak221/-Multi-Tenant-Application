@@ -21,10 +21,14 @@ async def apply_migrations_to_tenant(tenant_id: str) -> bool:
         True if successful, False otherwise
     """
     try:
-        # Get tenant ORM config
+        # Close any existing connections first
+        if Tortoise._inited:
+            await Tortoise.close_connections()
+
+        # Get tenant ORM config (only tenant models, no core models)
         tenant_config = get_tenant_orm_config(tenant_id)
 
-        # Initialize Tortoise with tenant config
+        # Initialize Tortoise with tenant config only
         await Tortoise.init(config=tenant_config)
 
         # Create Aerich command instance
@@ -41,7 +45,9 @@ async def apply_migrations_to_tenant(tenant_id: str) -> bool:
         return True
 
     except Exception as e:
+        import traceback
         print(f"Error applying migrations to tenant {tenant_id}: {e}")
+        traceback.print_exc()
         try:
             await Tortoise.close_connections()
         except:

@@ -1,5 +1,7 @@
 from tortoise import fields, models
-from tortoise.contrib.pydantic import pydantic_model_creator
+from pydantic import BaseModel, ConfigDict
+from typing import Optional, Dict, Any
+from datetime import datetime
 
 
 class TenantUser(models.Model):
@@ -28,9 +30,26 @@ class TenantUser(models.Model):
 
 
 # Pydantic models
-TenantUser_Pydantic = pydantic_model_creator(
-    TenantUser, name="TenantUser", exclude=("hashed_password",)
-)
-TenantUserIn_Pydantic = pydantic_model_creator(
-    TenantUser, name="TenantUserIn", exclude_readonly=True
-)
+class TenantUser_Pydantic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: str
+    email: str
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    avatar_url: Optional[str] = None
+    is_owner: bool
+    is_active: bool
+    metadata: Dict[str, Any]
+    created_at: datetime
+    updated_at: datetime
+
+
+class TenantUserIn_Pydantic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    email: str
+    password: str
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    avatar_url: Optional[str] = None

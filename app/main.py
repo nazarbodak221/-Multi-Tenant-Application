@@ -45,12 +45,7 @@ app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(organizations.router, prefix=settings.API_V1_PREFIX)
 app.include_router(users.router, prefix=settings.API_V1_PREFIX)
 
-
-@app.get("/")
-async def root():
-    return {"message": "Multi-Tenant Application API"}
-
-
-@app.get("/health")
+@app.get("/health", tags=["System"])
 async def health():
+    """Health check endpoint"""
     return {"status": "healthy"}

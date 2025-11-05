@@ -3,7 +3,6 @@ from typing import Dict, Optional
 
 import asyncpg
 from tortoise import Tortoise
-from tortoise.connection import connections
 
 from app.config import get_settings
 
@@ -68,6 +67,8 @@ class DatabaseManager:
             return
 
         # Build connections dict starting with default
+        # Tortoise ORM 0.21.0 supports both URL strings and structured format
+        # Using URL strings for compatibility
         connections_dict = {
             "default": settings.core_database_url,
         }
@@ -77,20 +78,26 @@ class DatabaseManager:
             connection_name = self.get_tenant_connection_name(tenant_id)
             connections_dict[connection_name] = settings.tenant_database_url(tenant_id)
 
-        # Build modules dict
-        modules_dict = {
-            "models": ["app.models.core"],
+        apps_dict = {
+            "core": {
+                "models": ["app.models.core"],
+                "default_connection": "default",
+            }
         }
 
-        # Add tenant models if we have tenant connections
         if self._tenant_connections:
-            modules_dict["models"].extend(["app.models.tenant"])
+            first_tenant = list(self._tenant_connections.keys())[0]
+            tenant_conn_name = self.get_tenant_connection_name(first_tenant)
+            apps_dict["tenant"] = {
+                "models": ["app.models.tenant"],
+                "default_connection": tenant_conn_name,
+            }
 
-        await Tortoise.init(
-            db_url=settings.core_database_url,
-            modules=modules_dict,
-            connections=connections_dict,
-        )
+        config = {
+            "connections": connections_dict,
+            "apps": apps_dict
+        }
+        await Tortoise.init(config=config)
         await Tortoise.generate_schemas()
         self._core_initialized = True
 
@@ -102,8 +109,6 @@ class DatabaseManager:
         if tenant_id in self._tenant_connections:
             return
 
-        tenant_url = settings.tenant_database_url(tenant_id)
-
         # Re-initialize Tortoise with all connections including new tenant
         self._tenant_connections[tenant_id] = True
 
@@ -113,6 +118,7 @@ class DatabaseManager:
             self._core_initialized = False
 
         # Re-initialize with all connections
+        # Using URL strings for compatibility
         connections_dict = {
             "default": settings.core_database_url,
         }
@@ -122,18 +128,25 @@ class DatabaseManager:
             conn_name = self.get_tenant_connection_name(tid)
             connections_dict[conn_name] = settings.tenant_database_url(tid)
 
-        modules_dict = {
-            "models": ["app.models.core", "app.models.tenant"],
+        apps_dict = {
+            "core": {
+                "models": ["app.models.core"],
+                "default_connection": "default",
+            },
+            "tenant": {
+                "models": ["app.models.tenant"],
+                "default_connection": connection_name, 
+            }
         }
 
-        await Tortoise.init(
-            db_url=settings.core_database_url,
-            modules=modules_dict,
-            connections=connections_dict,
-        )
+        config = {
+            "connections": connections_dict,
+            "apps": apps_dict
+        }
+        await Tortoise.init(config=config)
 
-        # Generate schemas for tenant database
-        await Tortoise.generate_schemas()
+        # Don't generate schemas here - use migrations instead
+        # Schemas will be created via Aerich migrations
 
     def get_tenant_connection_name(self, tenant_id: str) -> str:
         """Get connection name for tenant"""
@@ -186,22 +199,27 @@ class DatabaseManager:
 
         connection_name = self.get_tenant_connection_name(tenant_id)
         try:
-            yield connections.get(connection_name)
+            connection = Tortoise.get_connection(connection_name)
+            yield connection
         except Exception as e:
             # Re-initialize if connection was closed
             if tenant_id in self._tenant_connections:
                 del self._tenant_connections[tenant_id]
             await self.init_tenant_db(tenant_id)
-            yield connections.get(connection_name)
+            connection = Tortoise.get_connection(connection_name)
+            yield connection
 
     def get_tenant_model(self, tenant_id: str, model_class):
         """
-        Get model instance configured for specific tenant connection
-        Usage: user = db_manager.get_tenant_model(tenant_id, TenantUser)
+        Get model class configured for specific tenant connection
+        Returns the model class itself - use .using() on QuerySet operations
+        
+        Usage:
+            TenantUserModel = db_manager.get_tenant_model(tenant_id, TenantUser)
+            user = await TenantUserModel.all().using(connection_name).get(email=email)
+            # Or simpler: use filter/get on model with connection context
         """
-        connection_name = self.get_tenant_connection_name(tenant_id)
-        # Return model bound to tenant connection
-        return model_class.using(connection_name)
+        return model_class
 
     async def close_all(self):
         """Close all database connections"""
