@@ -12,7 +12,9 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post(
     "/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED
 )
-async def register(request: RegisterRequest, tenant_id: Optional[str] = Depends(get_tenant_id)):
+async def register(
+    request: RegisterRequest, tenant_id: Optional[str] = Depends(get_tenant_id)
+):
     """
     Register a new user
 
@@ -42,7 +44,9 @@ async def register(request: RegisterRequest, tenant_id: Optional[str] = Depends(
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(request: LoginRequest, tenant_id: Optional[str] = Depends(get_tenant_id)):
+async def login(
+    request: LoginRequest, tenant_id: Optional[str] = Depends(get_tenant_id)
+):
     """
     Login user
 

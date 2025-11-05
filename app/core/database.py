@@ -88,10 +88,7 @@ class DatabaseManager:
                 "default_connection": tenant_conn_name,
             }
 
-        config = {
-            "connections": connections_dict,
-            "apps": apps_dict
-        }
+        config = {"connections": connections_dict, "apps": apps_dict}
         await Tortoise.init(config=config)
         await Tortoise.generate_schemas()
         self._core_initialized = True
@@ -127,14 +124,11 @@ class DatabaseManager:
             },
             "tenant": {
                 "models": ["app.models.tenant"],
-                "default_connection": connection_name, 
-            }
+                "default_connection": connection_name,
+            },
         }
 
-        config = {
-            "connections": connections_dict,
-            "apps": apps_dict
-        }
+        config = {"connections": connections_dict, "apps": apps_dict}
         await Tortoise.init(config=config)
 
     def get_tenant_connection_name(self, tenant_id: str) -> str:

@@ -7,9 +7,16 @@ from uuid import UUID, uuid4
 import pytest
 
 from app.core.exceptions import AuthenticationError, ValidationError
-from app.core.security import (JWTHandler, PasswordHasher, TokenScope,
-                               create_core_token, create_tenant_token,
-                               decode_token, hash_password, verify_password)
+from app.core.security import (
+    JWTHandler,
+    PasswordHasher,
+    TokenScope,
+    create_core_token,
+    create_tenant_token,
+    decode_token,
+    hash_password,
+    verify_password,
+)
 
 
 class TestPasswordHasher:

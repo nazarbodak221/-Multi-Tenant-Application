@@ -9,7 +9,11 @@ from app.config import get_settings
 from app.core.database import db_manager
 from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.core.security import JWTHandler, TokenScope, decode_token
-from app.core.tenant_manager import TenantContext, require_tenant_from_context, get_tenant_from_context
+from app.core.tenant_manager import (
+    TenantContext,
+    get_tenant_from_context,
+    require_tenant_from_context,
+)
 from app.models.core import User
 from app.models.tenant import TenantUser
 from app.repositories.user_repositories import UserRepository

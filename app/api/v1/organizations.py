@@ -4,8 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import get_current_user_core
 from app.models.core import User
-from app.schemas.oranization import (CreateOrganizationRequest,
-                                     OrganizationResponse)
+from app.schemas.oranization import CreateOrganizationRequest, OrganizationResponse
 from app.services.organization_service import organization_service
 
 router = APIRouter(prefix="/organizations", tags=["Organizations"])

@@ -21,23 +21,23 @@ class PasswordHasher:
     @staticmethod
     def hash_password(password: str) -> str:
         """Hash a password using bcrypt, truncating to 72 bytes if needed."""
-        password_bytes = password.encode('utf-8')
+        password_bytes = password.encode("utf-8")
         if len(password_bytes) > 72:
             password_bytes = password_bytes[:72]
-        
+
         salt = bcrypt.gensalt()
         hashed = bcrypt.hashpw(password_bytes, salt)
-        return hashed.decode('utf-8')
+        return hashed.decode("utf-8")
 
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """
         Verify a password against its hash, truncating to 72 bytes if needed.
         """
-        password_bytes = plain_password.encode('utf-8')
+        password_bytes = plain_password.encode("utf-8")
         if len(password_bytes) > 72:
             password_bytes = password_bytes[:72]
-        hashed_bytes = hashed_password.encode('utf-8')
+        hashed_bytes = hashed_password.encode("utf-8")
         return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
@@ -231,6 +231,8 @@ class JWTHandler:
     @staticmethod
     def extract_tenant_id(payload: Dict[str, Any]) -> Optional[str]:
         return payload.get("tenant_id")
+
+
 def hash_password(password: str) -> str:
     return PasswordHasher.hash_password(password)
 

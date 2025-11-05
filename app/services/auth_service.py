@@ -4,15 +4,17 @@ from uuid import UUID
 from tortoise import Tortoise
 
 from app.core.database import db_manager
-from app.core.exceptions import (AuthenticationError, ConflictError,
-                                 NotFoundError)
-from app.core.security import (TokenScope, create_core_token,
-                               create_tenant_token, hash_password,
-                               verify_password)
+from app.core.exceptions import AuthenticationError, ConflictError, NotFoundError
+from app.core.security import (
+    TokenScope,
+    create_core_token,
+    create_tenant_token,
+    hash_password,
+    verify_password,
+)
 from app.models.core import User
 from app.models.tenant import TenantUser
-from app.repositories.user_repositories import (TenantUserRepository,
-                                                UserRepository)
+from app.repositories.user_repositories import TenantUserRepository, UserRepository
 
 
 class AuthService:

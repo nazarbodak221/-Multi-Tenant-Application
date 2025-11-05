@@ -9,8 +9,7 @@ from app.core.tenant_manager import TenantContext
 from app.core.utils import format_datetime
 from app.models.core import User
 from app.models.tenant import TenantUser
-from app.repositories.user_repositories import (TenantUserRepository,
-                                                UserRepository)
+from app.repositories.user_repositories import TenantUserRepository, UserRepository
 
 
 class UserService:

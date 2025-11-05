@@ -1,7 +1,8 @@
-from tortoise import fields, models
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, ConfigDict
+from tortoise import fields, models
 
 
 class TenantUser(models.Model):
@@ -31,7 +32,7 @@ class TenantUser(models.Model):
 
 class TenantUser_Pydantic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: str
     email: str
     full_name: Optional[str] = None
@@ -46,7 +47,7 @@ class TenantUser_Pydantic(BaseModel):
 
 class TenantUserIn_Pydantic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     email: str
     password: str
     full_name: Optional[str] = None

@@ -5,8 +5,11 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 from app.api.deps import get_current_user_tenant
 from app.config import get_settings
 from app.models.tenant import TenantUser
-from app.schemas.user import (TenantUserProfileResponse, UpdateProfileRequest,
-                              UserProfileResponse)
+from app.schemas.user import (
+    TenantUserProfileResponse,
+    UpdateProfileRequest,
+    UserProfileResponse,
+)
 from app.services.user_service import user_service
 
 settings = get_settings()

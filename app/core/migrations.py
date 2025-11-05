@@ -46,6 +46,7 @@ async def apply_migrations_to_tenant(tenant_id: str) -> bool:
 
     except Exception as e:
         import traceback
+
         print(f"Error applying migrations to tenant {tenant_id}: {e}")
         traceback.print_exc()
         try:

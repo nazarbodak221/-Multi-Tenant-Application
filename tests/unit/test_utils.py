@@ -25,4 +25,3 @@ def test_format_datetime_custom_format():
 
 def test_format_datetime_none():
     assert format_datetime(None) is None
-

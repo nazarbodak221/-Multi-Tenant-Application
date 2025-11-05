@@ -1,7 +1,8 @@
-from tortoise import fields, models
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
+from tortoise import fields, models
 
 
 class User(models.Model):
@@ -56,7 +57,7 @@ class Organization(models.Model):
 
 class User_Pydantic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: str
     email: str
     full_name: Optional[str] = None
@@ -67,7 +68,7 @@ class User_Pydantic(BaseModel):
 
 class UserIn_Pydantic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     email: str
     password: str
     full_name: Optional[str] = None
@@ -75,7 +76,7 @@ class UserIn_Pydantic(BaseModel):
 
 class Organization_Pydantic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: str
     name: str
     slug: str

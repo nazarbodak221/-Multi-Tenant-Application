@@ -5,10 +5,17 @@ Unit tests for custom exceptions
 import pytest
 from fastapi import status
 
-from app.core.exceptions import (AuthenticationError, AuthorizationError,
-                                 BadRequestError, ConflictError, DatabaseError,
-                                 NotFoundError, TenantAccessError,
-                                 TenantNotFoundError, ValidationError)
+from app.core.exceptions import (
+    AuthenticationError,
+    AuthorizationError,
+    BadRequestError,
+    ConflictError,
+    DatabaseError,
+    NotFoundError,
+    TenantAccessError,
+    TenantNotFoundError,
+    ValidationError,
+)
 
 
 class TestExceptions:
