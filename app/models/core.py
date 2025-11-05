@@ -4,8 +4,8 @@ from tortoise.contrib.pydantic import pydantic_model_creator
 
 class User(models.Model):
     """
-    Core database user model.
-    Stores platform-level users and organization owners.
+    Core database user model
+    Stores platform-level users and organization owners
     """
 
     id = fields.UUIDField(pk=True)
@@ -28,8 +28,8 @@ class User(models.Model):
 
 class Organization(models.Model):
     """
-    Organization (tenant) model in core database.
-    Each organization gets its own database.
+    Organization (tenant) model in core database
+    Each organization gets its own database
     """
 
     id = fields.UUIDField(pk=True)

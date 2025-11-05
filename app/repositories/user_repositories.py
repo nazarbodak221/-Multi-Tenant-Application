@@ -5,13 +5,13 @@ from app.models.tenant import TenantUser
 from app.repositories.base import BaseRepository
 
 class UserRepository(BaseRepository[User]):
-    """Repository for core users."""
+    """Repository for core users"""
     
     def __init__(self):
         super().__init__(User)
     
     async def get_by_email(self, email: str) -> Optional[User]:
-        """Get user by email."""
+        """Get user by email"""
         return await self.get_by_field(email=email)
     
     async def create_user(
@@ -20,7 +20,7 @@ class UserRepository(BaseRepository[User]):
         hashed_password: str,
         full_name: Optional[str] = None
     ) -> User:
-        """Create new user."""
+        """Create new user"""
         return await self.create(
             email=email,
             hashed_password=hashed_password,
@@ -29,13 +29,13 @@ class UserRepository(BaseRepository[User]):
 
 
 class TenantUserRepository(BaseRepository[TenantUser]):
-    """Repository for tenant users."""
+    """Repository for tenant users"""
     
     def __init__(self):
         super().__init__(TenantUser)
     
     async def get_by_email(self, email: str) -> Optional[TenantUser]:
-        """Get tenant user by email."""
+        """Get tenant user by email"""
         return await self.get_by_field(email=email)
     
     async def create_user(
@@ -46,7 +46,7 @@ class TenantUserRepository(BaseRepository[TenantUser]):
         is_owner: bool = False,
         **extra_data
     ) -> TenantUser:
-        """Create new tenant user."""
+        """Create new tenant user"""
         return await self.create(
             email=email,
             hashed_password=hashed_password,
@@ -60,5 +60,5 @@ class TenantUserRepository(BaseRepository[TenantUser]):
         user_id: UUID,
         **profile_data
     ) -> Optional[TenantUser]:
-        """Update user profile."""
+        """Update user profile"""
         return await self.update(user_id, **profile_data)
