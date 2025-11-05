@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Aerich migrations
+# Keep migration files but ignore temporary files
+migrations/*.log
+migrations/.migration_lock
