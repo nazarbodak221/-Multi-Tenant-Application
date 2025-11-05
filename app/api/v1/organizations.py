@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import get_current_user_core
@@ -9,9 +8,7 @@ from app.services.organization_service import organization_service
 router = APIRouter(prefix="/organizations", tags=["Organizations"])
 
 
-@router.post(
-    "", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED)
 async def create_organization(
     request: CreateOrganizationRequest,
     current_user: User = Depends(get_current_user_core),
@@ -27,7 +24,7 @@ async def create_organization(
         return OrganizationResponse(**result)
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.get("/me", response_model=list[OrganizationResponse])
@@ -42,13 +39,11 @@ async def get_my_organizations(current_user: User = Depends(get_current_user_cor
         return [OrganizationResponse(**org) for org in organizations]
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.get("/{org_id}", response_model=OrganizationResponse)
-async def get_organization(
-    org_id: str, current_user: User = Depends(get_current_user_core)
-):
+async def get_organization(org_id: str, current_user: User = Depends(get_current_user_core)):
     """
     Get organization by ID only for core-level users
     """
@@ -58,10 +53,10 @@ async def get_organization(
         result = await organization_service.get_organization(UUID(org_id))
         return OrganizationResponse(**result)
 
-    except ValueError:
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid organization ID format",
-        )
+        ) from e
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e

@@ -9,27 +9,27 @@ load_dotenv()
 
 class Settings(BaseSettings):
     # Application
-    APP_NAME: str = os.getenv("APP_NAME")
-    DEBUG: bool = os.getenv("DEBUG")
-    API_V1_PREFIX: str = os.getenv("API_V1_PREFIX")
+    APP_NAME: str = os.getenv("APP_NAME") or ""
+    DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
+    API_V1_PREFIX: str = os.getenv("API_V1_PREFIX") or ""
 
     # Core Database
-    CORE_DB_HOST: str = os.getenv("CORE_DB_HOST")
-    CORE_DB_PORT: int = os.getenv("CORE_DB_PORT")
-    CORE_DB_NAME: str = os.getenv("CORE_DB_NAME")
-    CORE_DB_USER: str = os.getenv("CORE_DB_USER")
-    CORE_DB_PASSWORD: str = os.getenv("CORE_DB_PASSWORD")
+    CORE_DB_HOST: str = os.getenv("CORE_DB_HOST") or ""
+    CORE_DB_PORT: int = int(os.getenv("CORE_DB_PORT") or "5432")
+    CORE_DB_NAME: str = os.getenv("CORE_DB_NAME") or ""
+    CORE_DB_USER: str = os.getenv("CORE_DB_USER") or ""
+    CORE_DB_PASSWORD: str = os.getenv("CORE_DB_PASSWORD") or ""
 
     # Tenant Database Template
-    TENANT_DB_HOST: str = os.getenv("TENANT_DB_HOST")
-    TENANT_DB_PORT: int = os.getenv("TENANT_DB_PORT")
-    TENANT_DB_USER: str = os.getenv("TENANT_DB_USER")
-    TENANT_DB_PASSWORD: str = os.getenv("TENANT_DB_PASSWORD")
+    TENANT_DB_HOST: str = os.getenv("TENANT_DB_HOST") or ""
+    TENANT_DB_PORT: int = int(os.getenv("TENANT_DB_PORT") or "5432")
+    TENANT_DB_USER: str = os.getenv("TENANT_DB_USER") or ""
+    TENANT_DB_PASSWORD: str = os.getenv("TENANT_DB_PASSWORD") or ""
 
     # Security
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
-    ALGORITHM: str = os.getenv("ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+    SECRET_KEY: str = os.getenv("SECRET_KEY") or ""
+    ALGORITHM: str = os.getenv("ALGORITHM") or ""
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES") or "30")
 
     # Tenant
     TENANT_HEADER_NAME: str = os.getenv("TENANT_HEADER_NAME", "X-Tenant-Id")

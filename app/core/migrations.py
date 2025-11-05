@@ -2,7 +2,6 @@
 Migration utilities for tenant databases
 """
 
-
 from aerich import Command
 from tortoise import Tortoise
 
@@ -31,9 +30,7 @@ async def apply_migrations_to_tenant(tenant_id: str) -> bool:
         await Tortoise.init(config=tenant_config)
 
         # Create Aerich command instance
-        command = Command(
-            tortoise_config=tenant_config, app="models", location="./migrations"
-        )
+        command = Command(tortoise_config=tenant_config, app="models", location="./migrations")
 
         await command.init()
 
@@ -50,6 +47,6 @@ async def apply_migrations_to_tenant(tenant_id: str) -> bool:
         traceback.print_exc()
         try:
             await Tortoise.close_connections()
-        except:
+        except Exception:
             pass
         return False

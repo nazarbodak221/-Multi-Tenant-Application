@@ -9,6 +9,7 @@ from app.core.exceptions import (
     NotFoundError,
 )
 from app.core.utils import format_datetime
+from app.events.emitter import EventType, event_emitter
 from app.models.core import Organization, User
 from app.repositories.organization_repository import OrganizationRepository
 from app.repositories.user_repositories import UserRepository
@@ -67,9 +68,7 @@ class OrganizationService:
         if existing_slug:
             raise ConflictError(f"Organization with slug '{slug}' already exists")
 
-        organization = Organization(
-            name=name, slug=slug, owner_id=owner_id, database_name=""
-        )
+        organization = Organization(name=name, slug=slug, owner_id=owner_id, database_name="")
         await organization.save()
 
         database_name = self.generate_database_name(str(organization.id))
@@ -98,6 +97,16 @@ class OrganizationService:
 
         await self._sync_owner_to_tenant(tenant_id, owner)
 
+        await event_emitter.emit(
+            EventType.ORGANIZATION_CREATED,
+            {
+                "organization_id": str(organization.id),
+                "organization_name": organization.name,
+                "owner_id": str(owner.id),
+                "owner_email": owner.email,
+            },
+        )
+
         return {
             "id": str(organization.id),
             "name": organization.name,
@@ -107,9 +116,7 @@ class OrganizationService:
             "is_active": organization.is_active,
             "created_at": format_datetime(organization.created_at),
             "updated_at": (
-                format_datetime(organization.updated_at)
-                if organization.updated_at
-                else None
+                format_datetime(organization.updated_at) if organization.updated_at else None
             ),
         }
 
@@ -130,22 +137,21 @@ class OrganizationService:
         connection_name = db_manager.get_tenant_connection_name(tenant_id)
         conn = Tortoise.get_connection(connection_name)
 
-        existing_owner = (
-            await TenantUser.filter(email=owner.email).using_db(conn).first()
-        )
+        existing_owner = await TenantUser.filter(email=owner.email).using_db(conn).first()
 
         if not existing_owner:
             from app.core.security import hash_password
 
             default_password = hash_password("changeme123")
 
-            await TenantUser.using_db(conn).create(
+            tenant_user = TenantUser(
                 email=owner.email,
                 hashed_password=default_password,
                 full_name=owner.full_name,
                 is_owner=True,
                 is_active=True,
             )
+            await tenant_user.save(using_db=conn)
 
     async def get_organization(self, org_id: UUID) -> dict[str, Any]:
         organization = await self.org_repo.get_by_id(org_id)
@@ -175,9 +181,7 @@ class OrganizationService:
                 "owner_id": str(org.owner_id),
                 "is_active": org.is_active,
                 "created_at": format_datetime(org.created_at),
-                "updated_at": (
-                    format_datetime(org.updated_at) if org.updated_at else None
-                ),
+                "updated_at": (format_datetime(org.updated_at) if org.updated_at else None),
             }
             for org in organizations
         ]

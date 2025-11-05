@@ -1,3 +1,4 @@
+from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 
@@ -26,13 +27,11 @@ async def get_my_profile(
     user, tenant_id = user_tenant
 
     try:
-        result = await user_service.get_tenant_user_profile(
-            user_id=user.id, tenant_id=tenant_id
-        )
+        result = await user_service.get_tenant_user_profile(user_id=user.id, tenant_id=tenant_id)
         return TenantUserProfileResponse(**result)
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.put("/me", response_model=TenantUserProfileResponse)
@@ -48,7 +47,7 @@ async def update_my_profile(
     user, tenant_id = user_tenant
 
     try:
-        update_data = {}
+        update_data: dict[str, Any] = {}
         if request.full_name is not None:
             update_data["full_name"] = request.full_name
         if request.phone is not None:
@@ -64,4 +63,4 @@ async def update_my_profile(
         return TenantUserProfileResponse(**result)
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e

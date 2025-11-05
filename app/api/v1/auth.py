@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import get_tenant_id
@@ -8,12 +7,8 @@ from app.services.auth_service import auth_service
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post(
-    "/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED
-)
-async def register(
-    request: RegisterRequest, tenant_id: str | None = Depends(get_tenant_id)
-):
+@router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+async def register(request: RegisterRequest, tenant_id: str | None = Depends(get_tenant_id)):
     """
     Register a new user
 
@@ -39,13 +34,11 @@ async def register(
         return AuthResponse(**result)
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(
-    request: LoginRequest, tenant_id: str | None = Depends(get_tenant_id)
-):
+async def login(request: LoginRequest, tenant_id: str | None = Depends(get_tenant_id)):
     """
     Login user
 
@@ -66,4 +59,4 @@ async def login(
         return AuthResponse(**result)
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e

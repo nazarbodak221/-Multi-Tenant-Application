@@ -78,6 +78,8 @@ class UserService:
             raise ValidationError("No valid fields to update")
 
         updated_user = await self.user_repo.update(user_id, **update_data)
+        if not updated_user:
+            raise NotFoundError("User", str(user_id))
 
         return {
             "id": str(updated_user.id),
@@ -124,7 +126,7 @@ class UserService:
         full_name: str | None = None,
         phone: str | None = None,
         avatar_url: str | None = None,
-        **extra_data
+        **extra_data,
     ) -> dict[str, Any]:
         """
         Update tenant user profile
@@ -158,7 +160,7 @@ class UserService:
         if not user:
             raise NotFoundError("TenantUser", str(user_id))
 
-        update_data = {}
+        update_data: dict[str, Any] = {}
         if full_name is not None:
             update_data["full_name"] = full_name
         if phone is not None:
@@ -167,11 +169,16 @@ class UserService:
             update_data["avatar_url"] = avatar_url
 
         if "metadata" in extra_data:
-            existing_metadata = user.metadata or {}
+            existing_metadata: dict[str, Any] = {}
+            if isinstance(user.metadata, dict):
+                existing_metadata = user.metadata.copy()
             new_metadata = extra_data.pop("metadata")
             if isinstance(new_metadata, dict):
                 existing_metadata.update(new_metadata)
                 update_data["metadata"] = existing_metadata
+            else:
+                # If metadata is not a dict, ignore it
+                pass
 
         allowed_fields = {"full_name", "phone", "avatar_url", "metadata"}
         for key, value in extra_data.items():

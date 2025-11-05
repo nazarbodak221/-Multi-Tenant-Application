@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 import bcrypt
@@ -26,7 +26,7 @@ class PasswordHasher:
 
         salt = bcrypt.gensalt()
         hashed = bcrypt.hashpw(password_bytes, salt)
-        return hashed.decode("utf-8")
+        return cast(str, hashed.decode("utf-8"))
 
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -37,7 +37,7 @@ class PasswordHasher:
         if len(password_bytes) > 72:
             password_bytes = password_bytes[:72]
         hashed_bytes = hashed_password.encode("utf-8")
-        return bcrypt.checkpw(password_bytes, hashed_bytes)
+        return cast(bool, bcrypt.checkpw(password_bytes, hashed_bytes))
 
 
 class TokenScope:
@@ -49,9 +49,7 @@ class JWTHandler:
     """JWT token creation and validation"""
 
     @staticmethod
-    def create_access_token(
-        data: dict[str, Any], expires_delta: timedelta | None = None
-    ) -> str:
+    def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
         """
         Create a JWT access token
 
@@ -67,16 +65,12 @@ class JWTHandler:
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(
-                minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-            )
+            expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
         to_encode.update({"exp": expire, "iat": datetime.utcnow(), "type": "access"})
 
-        encoded_jwt = jwt.encode(
-            to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
-        )
-        return encoded_jwt
+        encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        return str(encoded_jwt)
 
     @staticmethod
     def create_token_for_core_user(
@@ -143,12 +137,11 @@ class JWTHandler:
             AuthenticationError: If token is invalid or expired
         """
         try:
-            payload = jwt.decode(
-                token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-            )
-            return payload
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            # jwt.decode returns dict[str, Any]
+            return dict(payload)
         except JWTError as e:
-            raise AuthenticationError(f"Invalid token: {str(e)}")
+            raise AuthenticationError(f"Invalid token: {str(e)}") from e
 
     @staticmethod
     def get_token_payload(token: str) -> dict[str, Any]:
@@ -210,22 +203,22 @@ class JWTHandler:
 
         try:
             return UUID(user_id_str)
-        except ValueError:
-            raise ValidationError(f"Invalid user_id format: {user_id_str}")
+        except ValueError as e:
+            raise ValidationError(f"Invalid user_id format: {user_id_str}") from e
 
     @staticmethod
     def extract_email(payload: dict[str, Any]) -> str:
         email = payload.get("email")
         if not email:
             raise ValidationError("email is missing from token")
-        return email
+        return str(email)
 
     @staticmethod
     def extract_scope(payload: dict[str, Any]) -> str:
         scope = payload.get("scope")
         if not scope:
             raise ValidationError("scope is missing from token")
-        return scope
+        return str(scope)
 
     @staticmethod
     def extract_tenant_id(payload: dict[str, Any]) -> str | None:
@@ -240,18 +233,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return PasswordHasher.verify_password(plain_password, hashed_password)
 
 
-def create_core_token(
-    user_id: UUID, email: str, expires_delta: timedelta | None = None
-) -> str:
+def create_core_token(user_id: UUID, email: str, expires_delta: timedelta | None = None) -> str:
     return JWTHandler.create_token_for_core_user(user_id, email, expires_delta)
 
 
 def create_tenant_token(
     user_id: UUID, email: str, tenant_id: str, expires_delta: timedelta | None = None
 ) -> str:
-    return JWTHandler.create_token_for_tenant_user(
-        user_id, email, tenant_id, expires_delta
-    )
+    return JWTHandler.create_token_for_tenant_user(user_id, email, tenant_id, expires_delta)
 
 
 def decode_token(token: str) -> dict[str, Any]:

@@ -4,14 +4,14 @@ from fastapi import HTTPException, status
 class BaseApplicationException(HTTPException):
     """Base exception for application-specific errors"""
 
-    def __init__(self, status_code: int, detail: str, headers: dict = None):
+    def __init__(self, status_code: int, detail: str, headers: dict | None = None):
         super().__init__(status_code=status_code, detail=detail, headers=headers)
 
 
 class NotFoundError(BaseApplicationException):
     """Resource not found"""
 
-    def __init__(self, resource: str, identifier: str = None):
+    def __init__(self, resource: str, identifier: str | None = None):
         message = f"{resource} not found"
         if identifier:
             message += f" with id: {identifier}"
@@ -22,9 +22,7 @@ class ValidationError(BaseApplicationException):
     """Validation error"""
 
     def __init__(self, detail: str):
-        super().__init__(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail
-        )
+        super().__init__(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)
 
 
 class AuthenticationError(BaseApplicationException):
@@ -48,7 +46,7 @@ class AuthorizationError(BaseApplicationException):
 class TenantNotFoundError(BaseApplicationException):
     """Tenant not found or not accessible"""
 
-    def __init__(self, tenant_id: str = None):
+    def __init__(self, tenant_id: str | None = None):
         detail = "Tenant not found"
         if tenant_id:
             detail += f": {tenant_id}"
@@ -58,7 +56,7 @@ class TenantNotFoundError(BaseApplicationException):
 class TenantAccessError(BaseApplicationException):
     """User doesn't have access to this tenant"""
 
-    def __init__(self, tenant_id: str = None):
+    def __init__(self, tenant_id: str | None = None):
         detail = "Access denied to tenant"
         if tenant_id:
             detail += f": {tenant_id}"
@@ -69,9 +67,7 @@ class DatabaseError(BaseApplicationException):
     """Database operation failed"""
 
     def __init__(self, detail: str = "Database operation failed"):
-        super().__init__(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
-        )
+        super().__init__(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
 
 
 class ConflictError(BaseApplicationException):

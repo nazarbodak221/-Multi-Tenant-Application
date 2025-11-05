@@ -3,7 +3,6 @@ Structured logging middleware
 Provides request/response logging with structured data
 """
 
-import json
 import logging
 import time
 from collections.abc import Callable
@@ -118,18 +117,6 @@ def setup_logging(level: str = "INFO"):
     """
     import sys
 
-    # Configure logging format
-    log_format = json.dumps(
-        {
-            "timestamp": "%(asctime)s",
-            "level": "%(levelname)s",
-            "logger": "%(name)s",
-            "message": "%(message)s",
-            "extra": "%(extra)s" if hasattr(logging, "extra") else None,
-        }
-    )
-
-    # Simple format for console
     simple_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     logging.basicConfig(

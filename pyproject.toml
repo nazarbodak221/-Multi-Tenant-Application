@@ -3,3 +3,29 @@ tortoise_orm = "app.core.database.TORTOISE_ORM"
 location = "./migrations"
 src_folder = "./."
 
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "UP",
+    "ARG",
+    "SIM",
+]
+ignore = [
+    "E501",
+    "B008",
+    "ARG001",
+    "SIM105",  # False positive for async exception handling
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+

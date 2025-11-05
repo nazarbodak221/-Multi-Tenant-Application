@@ -1,4 +1,3 @@
-
 from fastapi import Depends, Header
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from tortoise import Tortoise
@@ -59,7 +58,7 @@ async def get_current_user_core(
     except AuthenticationError:
         raise
     except Exception as e:
-        raise AuthenticationError(f"Invalid authentication: {str(e)}")
+        raise AuthenticationError(f"Invalid authentication: {str(e)}") from e
 
 
 async def get_current_user_tenant(
@@ -118,11 +117,11 @@ async def get_current_user_tenant(
     except (AuthenticationError, AuthorizationError):
         raise
     except Exception as e:
-        raise AuthenticationError(f"Invalid authentication: {str(e)}")
+        raise AuthenticationError(f"Invalid authentication: {str(e)}") from e
 
 
 async def get_tenant_id(
-    x_tenant: str | None = Header(None, alias=settings.TENANT_HEADER_NAME)
+    x_tenant: str | None = Header(None, alias=settings.TENANT_HEADER_NAME),
 ) -> str | None:
     """
     Dependency to extract tenant ID from X-Tenant-Id header

@@ -17,6 +17,7 @@ Each organization (tenant) has its own isolated PostgreSQL database:
 - **Tenant Database Models**: `TenantUser` (tenant-specific)
 - **Database Manager**: Manages connections to core and tenant databases
 - **Tenant Context**: Thread-safe tenant ID storage via ContextVar
+- **Event System**: Lightweight emitter for organization lifecycle events
 - **JWT Authentication**: Separate tokens for core and tenant scope
 
 ### Request Flow
@@ -103,6 +104,11 @@ Application will be available at `http://localhost:8000`
 ### 1. Build and Run
 
 ```bash
+# Build and start containers
+docker-compose up -d --build
+
+# Or if containers are already running, rebuild:
+docker-compose build app
 docker-compose up -d
 ```
 
@@ -143,6 +149,9 @@ docker-compose exec app pytest --cov=app --cov-report=html
 
 # Run only unit tests
 docker-compose exec app pytest tests/unit/
+
+# Run only integration tests
+docker-compose exec app pytest tests/integration/
 
 # Run tests with verbose output
 docker-compose exec app pytest -v
@@ -252,6 +261,60 @@ python scripts/migrate_tenant.py
 
 ## Development
 
+### Pre-commit Hooks
+
+Pre-commit hooks automatically run Ruff and MyPy before each commit. Git is installed in the Docker container, and hooks are automatically installed when the container starts (if `.git` directory is available).
+
+#### Docker (Recommended)
+
+Hooks are automatically installed when the container starts. You can also manually install or run them:
+
+```bash
+# Install hooks (if not already installed)
+docker-compose exec app pre-commit install
+
+# Run hooks on all files
+docker-compose exec app pre-commit run --all-files
+
+# Hooks will run automatically on git commit
+```
+
+#### Local (Alternative)
+
+If running locally without Docker:
+
+```bash
+pip install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
+
+### Code Quality Tools
+
+#### Ruff (Linter & Formatter)
+
+Run Ruff manually in Docker:
+
+```bash
+# Check for issues
+docker-compose exec app ruff check app/
+
+# Auto-fix issues
+docker-compose exec app ruff check app/ --fix
+
+# Format code
+docker-compose exec app ruff format app/
+```
+
+#### MyPy (Type Checker)
+
+Run MyPy manually in Docker:
+
+```bash
+# Check type hints
+docker-compose exec app mypy app/
+```
+
 ### Running Tests
 
 #### Local
@@ -262,6 +325,9 @@ pytest
 
 # With coverage
 pytest --cov=app --cov-report=html
+
+# Only integration tests
+pytest tests/integration/
 
 # Specific test file
 pytest tests/unit/test_security.py
@@ -288,6 +354,9 @@ docker exec multi-tenant-app pytest --cov=app --cov-report=html
 # Run only unit tests
 docker exec multi-tenant-app pytest tests/unit/
 
+# Run only integration tests
+docker exec multi-tenant-app pytest tests/integration/
+
 # Run tests with verbose output
 docker exec multi-tenant-app pytest -v
 
@@ -306,6 +375,9 @@ docker-compose exec app pytest --cov=app --cov-report=term-missing
 
 # Run specific test file
 docker-compose exec app pytest tests/unit/test_security.py
+
+# Run only integration tests
+docker-compose exec app pytest tests/integration/
 ```
 
 ## Project Structure

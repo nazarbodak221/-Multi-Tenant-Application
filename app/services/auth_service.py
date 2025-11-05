@@ -137,23 +137,20 @@ class AuthService:
 
         existing_user = await TenantUser.filter(email=email).using_db(conn).first()
         if existing_user:
-            raise ConflictError(
-                f"User with email {email} already exists in this tenant"
-            )
+            raise ConflictError(f"User with email {email} already exists in this tenant")
 
         hashed_password = hash_password(password)
 
-        user = await TenantUser.using_db(conn).create(
+        user = TenantUser(
             email=email,
             hashed_password=hashed_password,
             full_name=full_name,
             is_owner=is_owner,
             **extra_data,
         )
+        await user.save(using_db=conn)
 
-        access_token = create_tenant_token(
-            user_id=user.id, email=user.email, tenant_id=tenant_id
-        )
+        access_token = create_tenant_token(user_id=user.id, email=user.email, tenant_id=tenant_id)
 
         return {
             "user": {
@@ -169,9 +166,7 @@ class AuthService:
             "tenant_id": tenant_id,
         }
 
-    async def login_tenant_user(
-        self, tenant_id: str, email: str, password: str
-    ) -> dict[str, Any]:
+    async def login_tenant_user(self, tenant_id: str, email: str, password: str) -> dict[str, Any]:
         """
         Login tenant user
 
@@ -202,9 +197,7 @@ class AuthService:
         if not user.is_active:
             raise AuthenticationError("User account is inactive")
 
-        access_token = create_tenant_token(
-            user_id=user.id, email=user.email, tenant_id=tenant_id
-        )
+        access_token = create_tenant_token(user_id=user.id, email=user.email, tenant_id=tenant_id)
 
         return {
             "user": {

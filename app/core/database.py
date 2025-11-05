@@ -69,7 +69,7 @@ class DatabaseManager:
             "default": settings.core_database_url,
         }
 
-        for tenant_id in self._tenant_connections.keys():
+        for tenant_id in self._tenant_connections:
             connection_name = self.get_tenant_connection_name(tenant_id)
             connections_dict[connection_name] = settings.tenant_database_url(tenant_id)
 
@@ -113,7 +113,7 @@ class DatabaseManager:
             "default": settings.core_database_url,
         }
 
-        for tid in self._tenant_connections.keys():
+        for tid in self._tenant_connections:
             conn_name = self.get_tenant_connection_name(tid)
             connections_dict[conn_name] = settings.tenant_database_url(tid)
 
@@ -152,9 +152,7 @@ class DatabaseManager:
             )
 
             # Check if database exists
-            exists = await conn.fetchval(
-                "SELECT 1 FROM pg_database WHERE datname = $1", db_name
-            )
+            exists = await conn.fetchval("SELECT 1 FROM pg_database WHERE datname = $1", db_name)
 
             if not exists:
                 await conn.execute(f'CREATE DATABASE "{db_name}"')
@@ -191,7 +189,7 @@ class DatabaseManager:
             connection = Tortoise.get_connection(connection_name)
             yield connection
 
-    def get_tenant_model(self, tenant_id: str, model_class):
+    def get_tenant_model(self, tenant_id: str, model_class):  # noqa: ARG002
         """Return model class bound to a specific tenant connection"""
         return model_class
 

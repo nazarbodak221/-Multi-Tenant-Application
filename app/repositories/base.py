@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, cast
 from uuid import UUID
 
 from tortoise.exceptions import DoesNotExist
@@ -19,29 +19,27 @@ class BaseRepository(Generic[ModelType]):
     async def get_by_id(self, id: UUID) -> ModelType | None:
         """Get entity by ID"""
         try:
-            return await self.model.get(id=id)
+            return cast(ModelType, await self.model.get(id=id))
         except DoesNotExist:
             return None
 
     async def get_by_field(self, **filters) -> ModelType | None:
         """Get entity by field filters"""
         try:
-            return await self.model.get(**filters)
+            return cast(ModelType, await self.model.get(**filters))
         except DoesNotExist:
             return None
 
-    async def get_all(
-        self, skip: int = 0, limit: int = 100, **filters
-    ) -> list[ModelType]:
+    async def get_all(self, skip: int = 0, limit: int = 100, **filters) -> list[ModelType]:
         """Get all entities with pagination"""
         query = self.model.filter(**filters)
-        return await query.offset(skip).limit(limit).all()
+        return cast(list[ModelType], await query.offset(skip).limit(limit).all())
 
     async def create(self, **data) -> ModelType:
         """Create new entity"""
         instance = self.model(**data)
         await instance.save()
-        return instance
+        return cast(ModelType, instance)
 
     async def update(self, id: UUID, **data) -> ModelType | None:
         """Update entity by ID"""
@@ -61,4 +59,4 @@ class BaseRepository(Generic[ModelType]):
 
     async def exists(self, **filters) -> bool:
         """Check if entity exists"""
-        return await self.model.exists(**filters)
+        return cast(bool, await self.model.exists(**filters))
